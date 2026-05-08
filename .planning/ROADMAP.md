@@ -49,11 +49,13 @@ Plans:
   3. User can run `tableau-agent-toolkit qa static --input workbook.twb` and receive a markdown QA report with pass/fail per check, errors first, then warnings, then remediation steps
   4. Vendored XSD schemas exist in `third_party/` and can be refreshed via `scripts/sync_tableau_schemas.py`
 
-**Plans**: TBD
+**Plans**: 4 plans in 3 waves
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01: Validation report types, QA report types, and TWB test fixtures (VAL-03, QA-03)
+- [ ] 02-02: Semantic validator with cross-reference checks and XSD sync (VAL-01, VAL-02, VAL-03, VAL-04)
+- [ ] 02-03: Static QA checker with 5 checks and sandbox smoke test stub (QA-01, QA-02)
+- [ ] 02-04: CLI commands validate-semantic and qa static with integration tests (VAL-02, VAL-03, QA-01, QA-03)
 
 ### Phase 3: Packaging and Publishing
 **Goal**: Users can package validated workbooks into .twbx archives and publish them to Tableau Server or Tableau Cloud with PAT authentication, receiving a publish receipt confirming the upload.
@@ -97,6 +99,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Spec, Generation, CLI, and Project Scaffolding | 0/5 | Not started | - |
-| 2. Validation and QA | 0/? | Not started | - |
+| 2. Validation and QA | 0/4 | Not started | - |
 | 3. Packaging and Publishing | 0/? | Not started | - |
 | 4. Agent Skills and MCP Integration | 0/? | Not started | - |
