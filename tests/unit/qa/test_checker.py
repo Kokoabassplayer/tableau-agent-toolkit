@@ -171,8 +171,14 @@ class TestMissingWorkbookName:
 
     def test_pass_when_name_present(self, tmp_path: Path) -> None:
         """Test 9: PASS when root element has name attribute."""
+        twb_content = """<?xml version='1.0' encoding='utf-8'?>
+<workbook name='MyWorkbook' version='26.1'>
+  <worksheets />
+</workbook>"""
+        twb_path = tmp_path / "with_name.twb"
+        twb_path.write_text(twb_content, encoding="utf-8")
+
         checker = StaticQAChecker()
-        twb_path = FIXTURES_DIR / "valid_full.twb"
         result = checker.check_missing_workbook_name(twb_path)
         assert result.status == CheckStatus.PASS
 
