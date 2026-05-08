@@ -36,8 +36,8 @@ Plans:
 - [x] 01-01: Project scaffolding, Pydantic spec models, and YAML I/O (PROJ-01, PROJ-04, SPEC-01, SPEC-02, SPEC-04, SPEC-05)
 - [x] 01-02: TWB version mapping, manifest handler, and template registry (GEN-02, GEN-03, GEN-04)
 - [x] 01-03: TWB generator with XML patching and XSD validator (GEN-01, GEN-05, SPEC-03)
-- [ ] 01-04: Typer CLI with generate, validate-xsd, and spec init commands (CLI-01, CLI-02, CLI-03)
-- [ ] 01-05: CI pipeline, example specs, and XSD sync script (PROJ-02, PROJ-03, PROJ-05)
+- [x] 01-04: Typer CLI with generate, validate-xsd, and spec init commands (CLI-01, CLI-02, CLI-03)
+- [x] 01-05: CI pipeline, example specs, and XSD sync script (PROJ-02, PROJ-03, PROJ-05)
 
 ### Phase 2: Validation and QA
 **Goal**: Users can validate generated workbooks with semantic checks that catch errors XSD cannot (broken references, invalid calc names, missing targets) and run static QA checks that produce actionable reports.
