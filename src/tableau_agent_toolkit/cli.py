@@ -15,7 +15,7 @@ from typing import Optional
 
 import typer
 
-from tableau_agent_toolkit.spec.io import load_spec
+from tableau_agent_toolkit.spec.io import load_spec, dump_spec
 from tableau_agent_toolkit.spec.models import DashboardSpec, WorkbookSpec, TemplateSpec
 from tableau_agent_toolkit.templates.registry import TemplateRegistry
 from tableau_agent_toolkit.twb.generator import WorkbookGenerator
@@ -103,6 +103,65 @@ def validate_xsd(
                 f"  Line {err.line}, Column {err.column}: {err.message}", err=True
             )
         sys.exit(1)
+
+
+spec_app = typer.Typer(help="Spec file operations")
+app.add_typer(spec_app, name="spec")
+
+
+@spec_app.command("init")
+def spec_init(
+    output: Path = typer.Option(
+        "dashboard_spec.yaml",
+        "--output",
+        "-o",
+        help="Output spec file path",
+    ),
+    workbook_name: str = typer.Option(
+        "My Dashboard",
+        "--name",
+        help="Workbook display name",
+    ),
+    template_id: str = typer.Option(
+        "finance-reconciliation",
+        "--template",
+        help="Template ID from catalog",
+    ),
+    tableau_version: str = typer.Option(
+        "2026.1",
+        "--version",
+        help="Target Tableau version",
+    ),
+) -> None:
+    """Generate a starter dashboard_spec.yaml from prompts.
+
+    Creates a minimal valid spec file with the specified workbook name,
+    template, and Tableau version. Edit the generated file to add
+    datasources, calculations, worksheets, and dashboards.
+    """
+    if output.exists():
+        typer.echo(f"Error: {output} already exists. Remove it or use a different path.", err=True)
+        raise typer.Exit(code=1)
+
+    spec = DashboardSpec(
+        spec_version="1.0",
+        workbook=WorkbookSpec(
+            name=workbook_name,
+            target_tableau_version=tableau_version,
+            template=TemplateSpec(
+                id=template_id,
+                path="",
+                required_anchors=[],
+            ),
+        ),
+        datasources=[],
+        parameters=[],
+        calculations=[],
+        worksheets=[],
+        dashboards=[],
+    )
+    dump_spec(spec, output)
+    typer.echo(f"Created starter spec: {output}")
 
 
 if __name__ == "__main__":
