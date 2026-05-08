@@ -1,9 +1,11 @@
 """Typer CLI entry point for tableau-agent-toolkit.
 
-Provides the main CLI application with Phase 1 commands:
+Provides the main CLI application with commands:
 - generate: Generate a Tableau workbook from a spec and template
 - validate-xsd: Validate a TWB file against pinned XSD schema
+- validate-semantic: Validate TWB cross-references
 - spec init: Generate a starter dashboard_spec.yaml
+- qa static: Run static QA checks and generate report
 
 The entry point is registered in pyproject.toml as:
     tableau-agent-toolkit = "tableau_agent_toolkit.cli:app"
@@ -15,10 +17,13 @@ from typing import Optional
 
 import typer
 
+from tableau_agent_toolkit.qa.checker import StaticQAChecker
+from tableau_agent_toolkit.qa.report import generate_qa_report
 from tableau_agent_toolkit.spec.io import load_spec, dump_spec
 from tableau_agent_toolkit.spec.models import DashboardSpec, WorkbookSpec, TemplateSpec
 from tableau_agent_toolkit.templates.registry import TemplateRegistry
 from tableau_agent_toolkit.twb.generator import WorkbookGenerator
+from tableau_agent_toolkit.validation.semantic import SemanticValidator
 from tableau_agent_toolkit.validation.xsd import XsdValidator
 
 app = typer.Typer(
@@ -102,6 +107,67 @@ def validate_xsd(
             typer.echo(
                 f"  Line {err.line}, Column {err.column}: {err.message}", err=True
             )
+        sys.exit(1)
+
+
+@app.command("validate-semantic")
+def validate_semantic(
+    twb_path: Path = typer.Argument(
+        ...,
+        help="Path to .twb file",
+        exists=True,
+    ),
+    spec_path: Optional[Path] = typer.Option(
+        None,
+        "--spec",
+        help="Path to original spec for error mapping",
+    ),
+) -> None:
+    """Validate TWB cross-references (sheet refs, calc names, action targets, field refs)."""
+    validator = SemanticValidator()
+    result = validator.validate(twb_path)
+    if result.valid:
+        typer.echo(f"Valid: {twb_path} passes semantic validation")
+    else:
+        typer.echo(f"Invalid: {twb_path} failed semantic validation", err=True)
+        for err in result.errors:
+            typer.echo(f"  ERROR: {err.message}", err=True)
+        for warn in result.warnings:
+            typer.echo(f"  WARNING: {warn.message}", err=True)
+        sys.exit(1)
+
+
+qa_app = typer.Typer(help="QA operations")
+app.add_typer(qa_app, name="qa")
+
+
+@qa_app.command("static")
+def qa_static(
+    twb_path: Path = typer.Argument(
+        ...,
+        help="Path to .twb file",
+        exists=True,
+    ),
+    output: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Output markdown report path",
+    ),
+) -> None:
+    """Run static QA checks and generate report."""
+    checker = StaticQAChecker()
+    results = checker.check_all(twb_path)
+    report = generate_qa_report(results, twb_path)
+    if output:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(report, encoding="utf-8")
+        typer.echo(f"QA report written to {output}")
+    else:
+        typer.echo(report)
+
+    # Exit non-zero if any check failed
+    if any(r.status.value == "FAIL" for r in results):
         sys.exit(1)
 
 
