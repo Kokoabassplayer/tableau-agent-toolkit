@@ -30,12 +30,14 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. User can `pip install` the package and all CLI commands appear with typed arguments and help text
   5. Example specs (finance reconciliation, executive KPI, ops monitoring) exist in the repository and generate successfully through the full spec-to-twb pipeline
 
-**Plans**: TBD
+**Plans**: 5 plans in 3 waves
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [x] 01-01: Project scaffolding, Pydantic spec models, and YAML I/O (PROJ-01, PROJ-04, SPEC-01, SPEC-02, SPEC-04, SPEC-05)
+- [x] 01-02: TWB version mapping, manifest handler, and template registry (GEN-02, GEN-03, GEN-04)
+- [ ] 01-03: TWB generator with XML patching and XSD validator (GEN-01, GEN-05, SPEC-03)
+- [ ] 01-04: Typer CLI with generate, validate-xsd, and spec init commands (CLI-01, CLI-02, CLI-03)
+- [ ] 01-05: CI pipeline, example specs, and XSD sync script (PROJ-02, PROJ-03, PROJ-05)
 
 ### Phase 2: Validation and QA
 **Goal**: Users can validate generated workbooks with semantic checks that catch errors XSD cannot (broken references, invalid calc names, missing targets) and run static QA checks that produce actionable reports.
@@ -94,7 +96,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Spec, Generation, CLI, and Project Scaffolding | 0/? | Not started | - |
+| 1. Spec, Generation, CLI, and Project Scaffolding | 0/5 | Not started | - |
 | 2. Validation and QA | 0/? | Not started | - |
 | 3. Packaging and Publishing | 0/? | Not started | - |
 | 4. Agent Skills and MCP Integration | 0/? | Not started | - |
