@@ -68,11 +68,12 @@ Plans:
   4. Each publish produces a receipt with workbook ID, project/site target, mode used, and verification results
   5. REST API fallback publisher handles edge cases the Tableau Server Client library does not cover
 
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01: Packaging module (WorkbookPackager, PackageVerifier) and package CLI command (PKG-01, PKG-02)
+- [ ] 03-02: Publishing infrastructure (TSCPublisher, RESTFallback, PublishReceipt, Settings, PublishSpec) (PUB-01, PUB-02, PUB-03, PUB-04, PUB-05)
+- [ ] 03-03: Publish CLI command with auto-package and integration tests (PUB-01, PUB-03, PUB-05)
 
 ### Phase 4: Agent Skills and MCP Integration
 **Goal**: Agent users (Claude Code and Codex) can invoke five composable skills that wrap the proven CLI pipeline, with dual plugin manifests and optional MCP integration for post-publish QA workflows.
@@ -100,5 +101,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. Spec, Generation, CLI, and Project Scaffolding | 0/5 | Not started | - |
 | 2. Validation and QA | 0/4 | Not started | - |
-| 3. Packaging and Publishing | 0/? | Not started | - |
+| 3. Packaging and Publishing | 0/3 | Planned | - |
 | 4. Agent Skills and MCP Integration | 0/? | Not started | - |
