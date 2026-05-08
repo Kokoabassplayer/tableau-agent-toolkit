@@ -5,5 +5,11 @@ from tableau_agent_toolkit.validation.report import (
     SemanticValidationResult,
     Severity,
 )
+from tableau_agent_toolkit.validation.semantic import SemanticValidator
 
-__all__ = ["SemanticIssue", "SemanticValidationResult", "Severity"]
+__all__ = [
+    "SemanticIssue",
+    "SemanticValidator",
+    "SemanticValidationResult",
+    "Severity",
+]
