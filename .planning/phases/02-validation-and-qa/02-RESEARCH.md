@@ -571,22 +571,13 @@ class XsdValidator:
 | A5 | The real XSD from GitHub will download successfully via the sync script | Pitfall 4 | Low -- the repo is public and officially supported; the sync script was tested in Phase 1 |
 | A6 | The sandbox smoke test (QA-02) can be stubbed as a "not yet implemented" or "skipped" check since it requires live infrastructure | QA-02 | Low -- the roadmap says it is optional |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Spec Line Number Mapping Strategy**
-   - What we know: SPEC-04 requires "Error messages map XML failures back to spec line numbers." PyYAML `safe_load()` does not preserve line numbers.
-   - What's unclear: Whether section-based references (e.g., `worksheets[2].datasource: 'SalesMap'`) are an acceptable substitute for exact line numbers.
-   - Recommendation: Use section-based references. If exact line numbers are required, add `ruamel.yaml` as an optional dependency and implement a line-preserving loader.
+1. **Spec Line Number Mapping Strategy** — RESOLVED: Plan 02-01 uses section-based references (e.g., `worksheets[2].datasource: 'SalesMap'`). No `ruamel.yaml` dependency needed. SemanticError/SemanticWarning dataclasses include a `context` field for section-based location.
 
-2. **Dashboard Zone Name Interpretation**
-   - What we know: The `<zone>` element has an optional `name` attribute. When the name matches a worksheet name, it is a sheet embed. Other zones may be layout containers, text zones, image zones, etc.
-   - What's unclear: Whether there is a reliable way to distinguish "sheet zone" from "layout zone" purely from XML attributes. The `type-v2` attribute might help but its values are not documented in the XSD.
-   - Recommendation: Only flag zones whose `name` does not match any defined worksheet/dashboard AND whose `name` is non-empty. This avoids false positives on layout zones that happen to have names.
+2. **Dashboard Zone Name Interpretation** — RESOLVED: Plan 02-02 SemanticValidator only flags zones whose `name` attribute is non-empty AND does not match any defined worksheet/dashboard name. This avoids false positives on layout containers. Verified against real XSD analysis in research.
 
-3. **QA-02 Implementation Depth**
-   - What we know: The roadmap says QA-02 "stays in Phase 2 despite requiring live infrastructure -- it is optional." The `tableauserverclient` library is in the stack but not yet installed.
-   - What's unclear: Whether to implement a full sandbox publish/unpublish cycle or just a connectivity check.
-   - Recommendation: Implement as a stub that checks for server configuration, and if present, attempts to publish and immediately unpublish. If no server config, emit SKIP status.
+3. **QA-02 Implementation Depth** — RESOLVED: Plan 02-03 implements QA-02 as a stub that checks for server config (`TABLEAU_SERVER_URL` env var). If absent, emits SKIP status. No full publish/unpublish cycle — just a graceful skip with clear messaging. `tableauserverclient` not required as a hard dependency.
 
 ## Environment Availability
 
