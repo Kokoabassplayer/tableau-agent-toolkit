@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<workbook source-build='0.0.0 (0000.0.0.0.0)' source-platform='win' original-version='26.1' version='26.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
+  <document-format-change-manifest>
+    <ManifestByVersion />
+  </document-format-change-manifest>
+  <datasources>
+    <datasource caption='Data' inline='true' name='Data' version='26.1'>
+      <column name='Amount' datatype='float' />
+    </datasource>
+  </datasources>
+  <worksheets>
+    <worksheet name='Sheet1' datasource='MissingDS' />
+  </worksheets>
+  <dashboards />
+</workbook>
