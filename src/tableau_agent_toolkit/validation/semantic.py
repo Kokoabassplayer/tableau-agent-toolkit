@@ -31,11 +31,15 @@ class SemanticValidator:
     real datasources, and calculation formulas reference real columns.
     """
 
-    def validate(self, twb_path: Path) -> SemanticValidationResult:
+    def validate(
+        self, twb_path: Path, spec_path: Path | None = None
+    ) -> SemanticValidationResult:
         """Validate a TWB file for semantic cross-reference errors.
 
         Args:
             twb_path: Path to the .twb file to validate.
+            spec_path: Optional path to the dashboard_spec.yaml for mapping
+                errors back to spec sections.
 
         Returns:
             SemanticValidationResult with valid flag, errors, and warnings.
@@ -47,6 +51,11 @@ class SemanticValidator:
         parser = etree.XMLParser(resolve_entities=False, no_network=True)
         tree = etree.parse(str(twb_path), parser)
         root = tree.getroot()
+
+        # Build spec index for error mapping if spec provided
+        spec_index: dict[str, str] = {}
+        if spec_path is not None:
+            spec_index = self._build_spec_index(spec_path)
 
         # Collect defined names
         datasources: set[str] = set(root.xpath("//datasource/@name"))
@@ -68,6 +77,7 @@ class SemanticValidator:
                         category="broken_sheet_reference",
                         message=f"Dashboard zone '{zone_name}' references undefined worksheet or dashboard",
                         xml_element=zone,
+                        spec_ref=spec_index.get(f"zone:{zone_name}"),
                     )
                 )
 
@@ -81,6 +91,7 @@ class SemanticValidator:
                         category="broken_action_target",
                         message=f"Action source references undefined worksheet '{worksheet_ref}'",
                         xml_element=source,
+                        spec_ref=spec_index.get(f"worksheet:{worksheet_ref}"),
                     )
                 )
 
@@ -95,6 +106,7 @@ class SemanticValidator:
                         category="dangling_datasource_ref",
                         message=f"Worksheet '{ws_name}' references undefined datasource '{ds_ref}'",
                         xml_element=ws,
+                        spec_ref=spec_index.get(f"worksheet:{ws_name}"),
                     )
                 )
 
@@ -121,6 +133,7 @@ class SemanticValidator:
                             category="dangling_field_reference",
                             message=f"Calculation '{calc_name}' references undefined field '{field_name}'",
                             xml_element=col,
+                            spec_ref=spec_index.get(f"calculation:{calc_name}"),
                         )
                     )
 
@@ -129,3 +142,49 @@ class SemanticValidator:
             errors=errors,
             warnings=warnings,
         )
+
+    @staticmethod
+    def _build_spec_index(spec_path: Path) -> dict[str, str]:
+        """Build a mapping from element names to spec section references.
+
+        Parses the spec YAML and creates a lookup table so semantic issues
+        can reference the originating spec section (e.g.
+        "worksheets[2].datasource: 'SalesMap'").
+        """
+        import yaml
+
+        spec_index: dict[str, str] = {}
+        try:
+            data = yaml.safe_load(spec_path.read_text(encoding="utf-8"))
+        except (OSError, yaml.YAMLError):
+            return spec_index
+
+        if not isinstance(data, dict):
+            return spec_index
+
+        for i, ws in enumerate(data.get("worksheets") or []):
+            if isinstance(ws, dict) and ws.get("name"):
+                ws_name = ws["name"]
+                spec_index[f"worksheet:{ws_name}"] = f"worksheets[{i}]"
+
+        for i, ds in enumerate(data.get("datasources") or []):
+            if isinstance(ds, dict) and ds.get("name"):
+                ds_name = ds["name"]
+                spec_index[f"datasource:{ds_name}"] = f"datasources[{i}]"
+
+        for i, calc in enumerate(data.get("calculations") or []):
+            if isinstance(calc, dict) and calc.get("name"):
+                calc_name = calc["name"]
+                spec_index[f"calculation:{calc_name}"] = f"calculations[{i}]"
+
+        for i, db in enumerate(data.get("dashboards") or []):
+            if isinstance(db, dict):
+                db_name = db.get("name", "")
+                for j, zone in enumerate(db.get("zones") or []):
+                    if isinstance(zone, dict) and zone.get("name"):
+                        zone_name = zone["name"]
+                        spec_index[f"zone:{zone_name}"] = (
+                            f"dashboards[{i}].zones[{j}]"
+                        )
+
+        return spec_index

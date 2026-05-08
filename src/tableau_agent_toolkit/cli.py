@@ -112,8 +112,9 @@ def validate_xsd(
 
 @app.command("validate-semantic")
 def validate_semantic(
-    twb_path: Path = typer.Argument(
+    input_path: Path = typer.Option(
         ...,
+        "--input",
         help="Path to .twb file",
         exists=True,
     ),
@@ -125,15 +126,21 @@ def validate_semantic(
 ) -> None:
     """Validate TWB cross-references (sheet refs, calc names, action targets, field refs)."""
     validator = SemanticValidator()
-    result = validator.validate(twb_path)
+    result = validator.validate(input_path, spec_path=spec_path)
     if result.valid:
-        typer.echo(f"Valid: {twb_path} passes semantic validation")
+        typer.echo(f"Valid: {input_path} passes semantic validation")
     else:
-        typer.echo(f"Invalid: {twb_path} failed semantic validation", err=True)
+        typer.echo(f"Invalid: {input_path} failed semantic validation", err=True)
         for err in result.errors:
-            typer.echo(f"  ERROR: {err.message}", err=True)
+            msg = f"  ERROR: {err.message}"
+            if err.spec_ref:
+                msg += f" (spec: {err.spec_ref})"
+            typer.echo(msg, err=True)
         for warn in result.warnings:
-            typer.echo(f"  WARNING: {warn.message}", err=True)
+            msg = f"  WARNING: {warn.message}"
+            if warn.spec_ref:
+                msg += f" (spec: {warn.spec_ref})"
+            typer.echo(msg, err=True)
         sys.exit(1)
 
 
@@ -143,8 +150,9 @@ app.add_typer(qa_app, name="qa")
 
 @qa_app.command("static")
 def qa_static(
-    twb_path: Path = typer.Argument(
+    input_path: Path = typer.Option(
         ...,
+        "--input",
         help="Path to .twb file",
         exists=True,
     ),
@@ -157,8 +165,8 @@ def qa_static(
 ) -> None:
     """Run static QA checks and generate report."""
     checker = StaticQAChecker()
-    results = checker.check_all(twb_path)
-    report = generate_qa_report(results, twb_path)
+    results = checker.check_all(input_path)
+    report = generate_qa_report(results, input_path)
     if output:
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(report, encoding="utf-8")

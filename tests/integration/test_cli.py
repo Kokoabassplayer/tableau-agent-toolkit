@@ -94,26 +94,26 @@ class TestValidateSemanticCommand:
         result = runner.invoke(app, ["validate-semantic", "--help"])
         assert result.exit_code == 0
 
-    def test_validate_semantic_help_shows_input_argument(self) -> None:
+    def test_validate_semantic_help_shows_input_option(self) -> None:
         result = runner.invoke(app, ["validate-semantic", "--help"])
-        assert "input" in result.output.lower() or "TWB" in result.output or "twb" in result.output.lower()
+        assert "--input" in result.output
 
     def test_validate_semantic_nonexistent_file_exits_nonzero(self) -> None:
         """validate-semantic on a nonexistent file should exit non-zero."""
-        result = runner.invoke(app, ["validate-semantic", "nonexistent.twb"])
+        result = runner.invoke(app, ["validate-semantic", "--input", "nonexistent.twb"])
         assert result.exit_code != 0
 
     def test_validate_semantic_valid_twb_exits_zero(self) -> None:
         """validate-semantic on a valid TWB should exit 0 and print Valid/passes."""
         valid_twb = FIXTURES_DIR / "valid_full.twb"
-        result = runner.invoke(app, ["validate-semantic", str(valid_twb)])
+        result = runner.invoke(app, ["validate-semantic", "--input", str(valid_twb)])
         assert result.exit_code == 0
         assert "Valid" in result.output or "passes" in result.output.lower()
 
     def test_validate_semantic_broken_twb_exits_nonzero(self) -> None:
         """validate-semantic on broken_references.twb should exit 1 with error text."""
         broken_twb = FIXTURES_DIR / "broken_references.twb"
-        result = runner.invoke(app, ["validate-semantic", str(broken_twb)])
+        result = runner.invoke(app, ["validate-semantic", "--input", str(broken_twb)])
         assert result.exit_code == 1
         assert "Invalid" in result.output or "ERROR" in result.output
 
@@ -136,7 +136,7 @@ class TestQaStaticCommand:
     def test_qa_static_valid_twb_prints_markdown(self) -> None:
         """qa static on valid_full.twb should print markdown with QA Report heading."""
         valid_twb = FIXTURES_DIR / "valid_full.twb"
-        result = runner.invoke(app, ["qa", "static", str(valid_twb)])
+        result = runner.invoke(app, ["qa", "static", "--input", str(valid_twb)])
         assert "# QA Report" in result.output
 
     def test_qa_static_output_writes_file(self, tmp_path: Path) -> None:
@@ -144,7 +144,7 @@ class TestQaStaticCommand:
         valid_twb = FIXTURES_DIR / "valid_full.twb"
         report_path = tmp_path / "report.md"
         result = runner.invoke(
-            app, ["qa", "static", str(valid_twb), "--output", str(report_path)]
+            app, ["qa", "static", "--input", str(valid_twb), "--output", str(report_path)]
         )
         # File should be written even if some QA checks fail (exit may be non-zero)
         assert report_path.exists()
