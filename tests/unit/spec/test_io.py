@@ -106,7 +106,7 @@ def test_load_spec_extra_fields(tmp_path: Path) -> None:
         "unknown_field: oops\n",
         encoding="utf-8",
     )
-    with pytest.raises(SpecValidationError, match="extra"):
+    with pytest.raises(SpecValidationError, match="(?i)extra"):
         load_spec(spec_file)
 
 
