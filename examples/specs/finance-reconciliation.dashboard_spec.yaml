@@ -1,0 +1,53 @@
+spec_version: "1.0"
+workbook:
+  name: "Finance Reconciliation Dashboard"
+  target_tableau_version: "2026.1"
+  packaging: "twb"
+  template:
+    id: "finance-reconciliation"
+    path: "finance/reconciliation_template.twb"
+    required_anchors:
+      - "datasource-pane"
+      - "dashboard-layout"
+datasources:
+  - name: "Finance_GL"
+    mode: "custom-sql"
+    custom_sql_file: "sql/finance_reconciliation.sql"
+    connection:
+      type: "sqlserver"
+      server: "${DB_HOST}"
+      database: "${DB_NAME}"
+  - name: "Finance_Subledger"
+    mode: "embedded-extract"
+    connection:
+      type: "sqlserver"
+      server: "${DB_HOST}"
+      database: "${DB_NAME}"
+parameters:
+  - name: "ReconciliationPeriod"
+    data_type: "string"
+    default_value: "Current Month"
+  - name: "VarianceThreshold"
+    data_type: "float"
+    default_value: "0.05"
+calculations:
+  - name: "Variance Amount"
+    formula: "SUM([GL Balance]) - SUM([Subledger Balance])"
+    comment: "Difference between GL and subledger"
+  - name: "Variance Pct"
+    formula: "ABS([Variance Amount]) / NULLIF(SUM([GL Balance]), 0)"
+    comment: "Variance as percentage of GL balance"
+worksheets:
+  - name: "GL vs Subledger Comparison"
+    datasource: "Finance_GL"
+  - name: "Variance Analysis"
+    datasource: "Finance_GL"
+  - name: "Reconciliation Summary"
+    datasource: "Finance_GL"
+dashboards:
+  - name: "Finance Reconciliation"
+    layout: "tiled"
+    sheets:
+      - "GL vs Subledger Comparison"
+      - "Variance Analysis"
+      - "Reconciliation Summary"

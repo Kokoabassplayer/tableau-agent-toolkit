@@ -1,0 +1,39 @@
+spec_version: "1.0"
+workbook:
+  name: "Operations Monitoring"
+  target_tableau_version: "2026.1"
+  packaging: "twb"
+  template:
+    id: "finance-reconciliation"
+    path: "finance/reconciliation_template.twb"
+    required_anchors:
+      - "datasource-pane"
+      - "dashboard-layout"
+datasources:
+  - name: "OpsMetrics"
+    mode: "embedded-live"
+    connection:
+      type: "postgres"
+      server: "${DB_HOST}"
+      database: "${DB_NAME}"
+  - name: "IncidentData"
+    mode: "embedded-extract"
+    connection:
+      type: "sqlserver"
+      server: "${DB_HOST}"
+      database: "${DB_NAME}"
+parameters:
+  - name: "TimeRange"
+    data_type: "string"
+    default_value: "Last 24 Hours"
+worksheets:
+  - name: "System Health"
+    datasource: "OpsMetrics"
+  - name: "Incident Tracker"
+    datasource: "IncidentData"
+dashboards:
+  - name: "Operations Dashboard"
+    layout: "tiled"
+    sheets:
+      - "System Health"
+      - "Incident Tracker"

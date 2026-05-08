@@ -1,0 +1,32 @@
+spec_version: "1.0"
+workbook:
+  name: "Executive KPI Dashboard"
+  target_tableau_version: "2026.1"
+  packaging: "twb"
+  template:
+    id: "finance-reconciliation"
+    path: "finance/reconciliation_template.twb"
+    required_anchors:
+      - "datasource-pane"
+      - "dashboard-layout"
+datasources:
+  - name: "KPI_Data"
+    mode: "embedded-live"
+    connection:
+      type: "postgres"
+      server: "${DB_HOST}"
+      database: "${DB_NAME}"
+calculations:
+  - name: "Revenue Growth"
+    formula: "(SUM([Current Revenue]) - SUM([Prior Revenue])) / NULLIF(SUM([Prior Revenue]), 0)"
+worksheets:
+  - name: "Revenue Trend"
+    datasource: "KPI_Data"
+  - name: "KPI Scorecard"
+    datasource: "KPI_Data"
+dashboards:
+  - name: "Executive KPI"
+    layout: "tiled"
+    sheets:
+      - "Revenue Trend"
+      - "KPI Scorecard"
