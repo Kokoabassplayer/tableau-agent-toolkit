@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="workbook">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="document-format-change-manifest" minOccurs="0" />
+        <xs:element name="datasources" minOccurs="0" />
+        <xs:element name="worksheets" minOccurs="0" />
+        <xs:element name="dashboards" minOccurs="0" />
+      </xs:all>
+      <xs:attribute name="version" type="xs:string" />
+      <xs:attribute name="original-version" type="xs:string" />
+      <xs:attribute name="source-build" type="xs:string" />
+      <xs:attribute name="source-platform" type="xs:string" />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
