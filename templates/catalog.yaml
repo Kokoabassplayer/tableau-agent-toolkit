@@ -1,0 +1,10 @@
+# Template catalog for tableau-agent-toolkit
+# Each template entry maps a logical ID to a file path and Tableau version compatibility
+templates:
+  finance-reconciliation:
+    path: "finance/reconciliation_template.twb"
+    tableau_versions:
+      - "2026.1"
+    required_anchors:
+      - "datasource-pane"
+      - "dashboard-layout"
