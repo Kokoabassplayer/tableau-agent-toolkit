@@ -6,6 +6,7 @@ CLI command references, and no hardcoded secrets.
 """
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -182,3 +183,128 @@ class TestSkillFrontmatter:
         skill_path = PROJECT_ROOT / "skills" / skill_name / "SKILL.md"
         content = skill_path.read_text(encoding="utf-8")
         assert "tableau-agent-toolkit" in content, f"{skill_name} must reference CLI command"
+
+
+class TestSkillContent:
+    """Validate content quality of SKILL.md files.
+
+    These tests ensure skills have meaningful error handling, clear prerequisites,
+    correct pipeline context, and no unnecessary duplication with project-level docs.
+    """
+
+    @pytest.mark.parametrize("skill_name", SKILL_NAMES)
+    def test_skill_has_error_handling_section(self, skill_name: str) -> None:
+        """Each skill must have an Error Handling section."""
+        skill_path = PROJECT_ROOT / "skills" / skill_name / "SKILL.md"
+        content = skill_path.read_text(encoding="utf-8")
+        assert "## Error Handling" in content or "## Error handling" in content, (
+            f"{skill_name} must have an '## Error Handling' section"
+        )
+
+    @pytest.mark.parametrize("skill_name", SKILL_NAMES)
+    def test_error_handling_has_specific_scenarios(self, skill_name: str) -> None:
+        """Error Handling section must document at least 2 specific error scenarios."""
+        skill_path = PROJECT_ROOT / "skills" / skill_name / "SKILL.md"
+        content = skill_path.read_text(encoding="utf-8")
+
+        # Find the Error Handling section
+        eh_match = re.search(
+            r"## Error Handling\s*\n(.*?)(?=\n## |\Z)",
+            content,
+            re.DOTALL | re.IGNORECASE,
+        )
+        assert eh_match is not None, f"{skill_name} missing Error Handling section"
+
+        eh_content = eh_match.group(1)
+
+        # Count bullet points or numbered items in error handling
+        # Each "- If ..." or "* If ..." or "1. ..." counts as a scenario
+        scenarios = re.findall(r"(?:^|\n)\s*(?:[-*]|\d+\.)\s+", eh_content)
+        assert len(scenarios) >= 2, (
+            f"{skill_name} Error Handling must document at least 2 scenarios, "
+            f"found {len(scenarios)}"
+        )
+
+    @pytest.mark.parametrize("skill_name", SKILL_NAMES)
+    def test_skill_has_prerequisites_section(self, skill_name: str) -> None:
+        """Each skill must document prerequisites."""
+        skill_path = PROJECT_ROOT / "skills" / skill_name / "SKILL.md"
+        content = skill_path.read_text(encoding="utf-8")
+        assert "## Prerequisites" in content or "## Prerequisite" in content, (
+            f"{skill_name} must have a '## Prerequisites' section"
+        )
+
+    @pytest.mark.parametrize("skill_name", SKILL_NAMES)
+    def test_skill_has_pipeline_context(self, skill_name: str) -> None:
+        """Each skill must document its position in the pipeline."""
+        skill_path = PROJECT_ROOT / "skills" / skill_name / "SKILL.md"
+        content = skill_path.read_text(encoding="utf-8")
+        assert "## Pipeline Context" in content or "Pipeline Context" in content, (
+            f"{skill_name} must have a '## Pipeline Context' section"
+        )
+
+    @pytest.mark.parametrize("skill_name", SKILL_NAMES)
+    def test_no_duplicate_agents_md_content(self, skill_name: str) -> None:
+        """Skills should not copy the full architecture listing from AGENTS.md."""
+        skill_path = PROJECT_ROOT / "skills" / skill_name / "SKILL.md"
+        content = skill_path.read_text(encoding="utf-8")
+
+        agents_md = PROJECT_ROOT / "AGENTS.md"
+        agents_content = agents_md.read_text(encoding="utf-8")
+
+        # Extract the Architecture section from AGENTS.md
+        arch_match = re.search(
+            r"## Architecture\s*\n(.*?)(?=\n## |\Z)",
+            agents_content,
+            re.DOTALL,
+        )
+        if arch_match:
+            arch_section = arch_match.group(1).strip()
+            # Skills should not contain the full architecture listing verbatim
+            # Check if more than 3 architecture lines appear in the skill
+            arch_lines = [line.strip() for line in arch_section.split("\n") if line.strip()]
+            matching_lines = sum(
+                1 for line in arch_lines
+                if line and line in content
+            )
+            assert matching_lines <= 3, (
+                f"{skill_name} duplicates too much Architecture content from AGENTS.md "
+                f"({matching_lines} lines). Skills should reference AGENTS.md, not copy it."
+            )
+
+    @pytest.mark.parametrize("skill_name", SKILL_NAMES)
+    def test_allowed_tools_subset(self, skill_name: str) -> None:
+        """Skills should only allow Bash, Read, Write tools."""
+        skill_path = PROJECT_ROOT / "skills" / skill_name / "SKILL.md"
+        content = skill_path.read_text(encoding="utf-8")
+
+        # Extract frontmatter
+        parts = content.split("---")
+        assert len(parts) >= 3
+        frontmatter = parts[1]
+
+        # Check allowed-tools if present
+        allowed_match = re.search(r"allowed-tools:\s*\n((?:\s*-\s*\w+\s*\n)+)", frontmatter)
+        if allowed_match:
+            tools = re.findall(r"-\s*(\w+)", allowed_match.group(1))
+            valid_tools = {"Bash", "Read", "Write", "Edit"}
+            for tool in tools:
+                assert tool in valid_tools, (
+                    f"{skill_name} allows tool '{tool}' which is not in valid set: {valid_tools}"
+                )
+
+    @pytest.mark.parametrize("skill_name", SKILL_NAMES)
+    def test_skill_description_meaningful(self, skill_name: str) -> None:
+        """Skill description must be meaningful (at least 20 characters)."""
+        skill_path = PROJECT_ROOT / "skills" / skill_name / "SKILL.md"
+        content = skill_path.read_text(encoding="utf-8")
+
+        parts = content.split("---")
+        frontmatter = parts[1]
+
+        desc_match = re.search(r"description:\s*['\"]?(.+?)['\"]?\s*$", frontmatter, re.MULTILINE)
+        assert desc_match is not None, f"{skill_name} must have description in frontmatter"
+        description = desc_match.group(1).strip().strip("'\"")
+        assert len(description) >= 20, (
+            f"{skill_name} description too short ({len(description)} chars): '{description}'"
+        )
