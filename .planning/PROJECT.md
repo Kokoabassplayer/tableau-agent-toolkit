@@ -22,7 +22,7 @@ Deterministic workbook generation from spec + template — the same `dashboard_s
 - [ ] Python package with Typer CLI (`tableau-agent-toolkit`)
 - [ ] Structured dashboard spec schema (`dashboard_spec.yaml`) with Pydantic v2 models
 - [ ] Template-first TWB generator using lxml-based XML patching
-- [ ] XSD validation against pinned `tableau-document-schemas`
+- [x] XSD validation against pinned `tableau-document-schemas` — Validated in Phase 05
 - [ ] Semantic validation (sheet refs, calc names, action targets, field references)
 - [ ] `.twbx` packager (separate step from `.twb` generation)
 - [ ] Tableau Server Client publisher with PAT auth (REST fallback)
@@ -85,4 +85,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-09 after Phase 04 completion*
+*Last updated: 2026-05-09 after Phase 05 completion*
