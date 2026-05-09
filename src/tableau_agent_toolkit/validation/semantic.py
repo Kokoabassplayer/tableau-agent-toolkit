@@ -21,6 +21,25 @@ from tableau_agent_toolkit.validation.report import (
     Severity,
 )
 
+REMEDIATION_MAP: dict[str, str] = {
+    "broken_sheet_reference": (
+        "Check that the sheet name in the dashboard zone matches "
+        "a defined worksheet or dashboard in the spec."
+    ),
+    "broken_action_target": (
+        "Verify the worksheet referenced in the action source "
+        "exists in the spec's worksheets section."
+    ),
+    "dangling_datasource_ref": (
+        "Add the missing datasource to the spec's datasources section, "
+        "or correct the worksheet's datasource reference."
+    ),
+    "dangling_field_reference": (
+        "Add the missing field to the datasource columns, "
+        "or fix the calculation formula to reference an existing field."
+    ),
+}
+
 
 class SemanticValidator:
     """Validates semantic cross-references in Tableau workbook files.
@@ -53,7 +72,8 @@ class SemanticValidator:
         root = tree.getroot()
 
         # Build spec index for error mapping if spec provided
-        spec_index: dict[str, str] = {}
+        spec_index: dict[str, tuple[str, int]] = {}
+        spec_filename: str | None = str(spec_path.name) if spec_path else None
         if spec_path is not None:
             spec_index = self._build_spec_index(spec_path)
 
@@ -71,13 +91,19 @@ class SemanticValidator:
         for zone in root.xpath("//dashboard/zones/zone[@name]"):
             zone_name = zone.get("name", "")
             if zone_name and zone_name not in worksheets and zone_name not in dashboards:
+                spec_ref_val, spec_line_val = spec_index.get(
+                    f"zone:{zone_name}", (None, None)
+                )
                 errors.append(
                     SemanticIssue(
                         severity=Severity.ERROR,
                         category="broken_sheet_reference",
                         message=f"Dashboard zone '{zone_name}' references undefined worksheet or dashboard",
                         xml_element=zone,
-                        spec_ref=spec_index.get(f"zone:{zone_name}"),
+                        spec_ref=spec_ref_val,
+                        spec_file=spec_filename,
+                        spec_line=spec_line_val,
+                        remediation=REMEDIATION_MAP.get("broken_sheet_reference"),
                     )
                 )
 
@@ -85,13 +111,19 @@ class SemanticValidator:
         for source in root.xpath("//action/source[@worksheet]"):
             worksheet_ref = source.get("worksheet", "")
             if worksheet_ref and worksheet_ref not in worksheets:
+                spec_ref_val, spec_line_val = spec_index.get(
+                    f"worksheet:{worksheet_ref}", (None, None)
+                )
                 errors.append(
                     SemanticIssue(
                         severity=Severity.ERROR,
                         category="broken_action_target",
                         message=f"Action source references undefined worksheet '{worksheet_ref}'",
                         xml_element=source,
-                        spec_ref=spec_index.get(f"worksheet:{worksheet_ref}"),
+                        spec_ref=spec_ref_val,
+                        spec_file=spec_filename,
+                        spec_line=spec_line_val,
+                        remediation=REMEDIATION_MAP.get("broken_action_target"),
                     )
                 )
 
@@ -100,13 +132,19 @@ class SemanticValidator:
             ds_ref = ws.get("datasource", "")
             ws_name = ws.get("name", "<unknown>")
             if ds_ref and ds_ref not in datasources:
+                spec_ref_val, spec_line_val = spec_index.get(
+                    f"worksheet:{ws_name}", (None, None)
+                )
                 warnings.append(
                     SemanticIssue(
                         severity=Severity.WARNING,
                         category="dangling_datasource_ref",
                         message=f"Worksheet '{ws_name}' references undefined datasource '{ds_ref}'",
                         xml_element=ws,
-                        spec_ref=spec_index.get(f"worksheet:{ws_name}"),
+                        spec_ref=spec_ref_val,
+                        spec_file=spec_filename,
+                        spec_line=spec_line_val,
+                        remediation=REMEDIATION_MAP.get("dangling_datasource_ref"),
                     )
                 )
 
@@ -127,13 +165,19 @@ class SemanticValidator:
                 # Normalize: strip brackets for comparison
                 normalized = field_name.strip("[]")
                 if normalized not in all_column_names:
+                    spec_ref_val, spec_line_val = spec_index.get(
+                        f"calculation:{calc_name}", (None, None)
+                    )
                     warnings.append(
                         SemanticIssue(
                             severity=Severity.WARNING,
                             category="dangling_field_reference",
                             message=f"Calculation '{calc_name}' references undefined field '{field_name}'",
                             xml_element=col,
-                            spec_ref=spec_index.get(f"calculation:{calc_name}"),
+                            spec_ref=spec_ref_val,
+                            spec_file=spec_filename,
+                            spec_line=spec_line_val,
+                            remediation=REMEDIATION_MAP.get("dangling_field_reference"),
                         )
                     )
 
@@ -144,47 +188,78 @@ class SemanticValidator:
         )
 
     @staticmethod
-    def _build_spec_index(spec_path: Path) -> dict[str, str]:
-        """Build a mapping from element names to spec section references.
+    def _build_spec_index(spec_path: Path) -> dict[str, tuple[str, int]]:
+        """Build a mapping from element names to (spec_ref, 1-based line number).
 
-        Parses the spec YAML and creates a lookup table so semantic issues
-        can reference the originating spec section (e.g.
-        "worksheets[2].datasource: 'SalesMap'").
+        Uses yaml.compose() to build a Node tree that preserves line numbers,
+        then walks the tree to index worksheets, datasources, calculations,
+        and dashboard sheet references.
+
+        Returns:
+            Dict mapping keys like "worksheet:Name" or "zone:Name" to
+            tuples of (spec_path_fragment, 1-based_line_number).
         """
-        import yaml
+        import yaml as yaml_module
+        from yaml import MappingNode, ScalarNode, SequenceNode
 
-        spec_index: dict[str, str] = {}
+        spec_index: dict[str, tuple[str, int]] = {}
         try:
-            data = yaml.safe_load(spec_path.read_text(encoding="utf-8"))
-        except (OSError, yaml.YAMLError):
+            text = spec_path.read_text(encoding="utf-8")
+        except OSError:
             return spec_index
 
-        if not isinstance(data, dict):
+        try:
+            stream = yaml_module.compose(text)
+        except yaml_module.YAMLError:
             return spec_index
 
-        for i, ws in enumerate(data.get("worksheets") or []):
-            if isinstance(ws, dict) and ws.get("name"):
-                ws_name = ws["name"]
-                spec_index[f"worksheet:{ws_name}"] = f"worksheets[{i}]"
+        if stream is None or not isinstance(stream, MappingNode):
+            return spec_index
 
-        for i, ds in enumerate(data.get("datasources") or []):
-            if isinstance(ds, dict) and ds.get("name"):
-                ds_name = ds["name"]
-                spec_index[f"datasource:{ds_name}"] = f"datasources[{i}]"
+        # Helper: extract scalar value and line from a MappingNode's key
+        def _get_scalar_value(mapping: MappingNode, key: str) -> tuple[str | None, int | None]:
+            for k_node, v_node in mapping.value:
+                if isinstance(k_node, ScalarNode) and k_node.value == key:
+                    if isinstance(v_node, ScalarNode):
+                        return v_node.value, v_node.start_mark.line + 1
+            return None, None
 
-        for i, calc in enumerate(data.get("calculations") or []):
-            if isinstance(calc, dict) and calc.get("name"):
-                calc_name = calc["name"]
-                spec_index[f"calculation:{calc_name}"] = f"calculations[{i}]"
+        for key_node, value_node in stream.value:
+            if not isinstance(key_node, ScalarNode):
+                continue
+            section = key_node.value
 
-        for i, db in enumerate(data.get("dashboards") or []):
-            if isinstance(db, dict):
-                db_name = db.get("name", "")
-                for j, zone in enumerate(db.get("zones") or []):
-                    if isinstance(zone, dict) and zone.get("name"):
-                        zone_name = zone["name"]
-                        spec_index[f"zone:{zone_name}"] = (
-                            f"dashboards[{i}].zones[{j}]"
+            if section in ("worksheets", "datasources", "calculations"):
+                if not isinstance(value_node, SequenceNode):
+                    continue
+                for i, item_node in enumerate(value_node.value):
+                    if not isinstance(item_node, MappingNode):
+                        continue
+                    name, line = _get_scalar_value(item_node, "name")
+                    if name is not None and line is not None:
+                        spec_index[f"{section[:-1]}:{name}"] = (
+                            f"{section}[{i}]",
+                            line,
                         )
+
+            elif section == "dashboards":
+                if not isinstance(value_node, SequenceNode):
+                    continue
+                for i, db_node in enumerate(value_node.value):
+                    if not isinstance(db_node, MappingNode):
+                        continue
+                    # Find the "sheets" key in the dashboard mapping
+                    for dk, dv in db_node.value:
+                        if isinstance(dk, ScalarNode) and dk.value == "sheets":
+                            if not isinstance(dv, SequenceNode):
+                                continue
+                            for j, sheet_node in enumerate(dv.value):
+                                if isinstance(sheet_node, ScalarNode):
+                                    sheet_name = sheet_node.value
+                                    line = sheet_node.start_mark.line + 1
+                                    spec_index[f"zone:{sheet_name}"] = (
+                                        f"dashboards[{i}].sheets[{j}]",
+                                        line,
+                                    )
 
         return spec_index

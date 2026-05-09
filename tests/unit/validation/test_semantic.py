@@ -128,7 +128,7 @@ class TestSpecLineMapping:
         """_build_spec_index maps worksheet names to (spec_path_fragment, line_number)."""
         spec_path = FIXTURES_DIR / "broken_references_spec.yaml"
         result = validator._build_spec_index(spec_path)
-        key = "worksheets:Sheet1"
+        key = "worksheet:Sheet1"
         assert key in result
         spec_ref, line = result[key]
         assert spec_ref == "worksheets[0]"

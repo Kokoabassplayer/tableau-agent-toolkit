@@ -30,6 +30,9 @@ class SemanticIssue:
         message: Human-readable description of the issue.
         xml_element: The XML element that caused the issue, if applicable.
         spec_ref: Reference to the spec section that is violated, if applicable.
+        spec_file: Filename of the dashboard spec YAML, if applicable.
+        spec_line: 1-based line number in the spec file, if applicable.
+        remediation: Human-readable guidance for fixing the issue.
     """
 
     severity: Severity
@@ -37,6 +40,9 @@ class SemanticIssue:
     message: str
     xml_element: etree._Element | None = None
     spec_ref: str | None = None
+    spec_file: str | None = None
+    spec_line: int | None = None
+    remediation: str | None = None
 
 
 @dataclass
