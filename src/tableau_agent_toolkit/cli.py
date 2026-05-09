@@ -4,6 +4,7 @@ Provides the main CLI application with commands:
 - generate: Generate a Tableau workbook from a spec and template
 - validate-xsd: Validate a TWB file against pinned XSD schema
 - validate-semantic: Validate TWB cross-references
+- package: Package a .twb file into a .twbx archive
 - spec init: Generate a starter dashboard_spec.yaml
 - qa static: Run static QA checks and generate report
 
@@ -17,6 +18,7 @@ from typing import Optional
 
 import typer
 
+from tableau_agent_toolkit.packaging.packager import WorkbookPackager
 from tableau_agent_toolkit.qa.checker import StaticQAChecker
 from tableau_agent_toolkit.qa.report import generate_qa_report
 from tableau_agent_toolkit.spec.io import load_spec, dump_spec
@@ -142,6 +144,34 @@ def validate_semantic(
                 msg += f" (spec: {warn.spec_ref})"
             typer.echo(msg, err=True)
         sys.exit(1)
+
+
+@app.command("package")
+def package(
+    input_path: Path = typer.Option(
+        ...,
+        "--input",
+        help="Path to .twb file to package",
+        exists=True,
+    ),
+    output: Path = typer.Option(
+        "output.twbx",
+        "--output",
+        "-o",
+        help="Output .twbx path",
+    ),
+) -> None:
+    """Package a .twb file into a .twbx archive.
+
+    Creates a ZIP archive containing the .twb file, matching the
+    Tableau Desktop .twbx output structure.
+    """
+    packager = WorkbookPackager()
+    result = packager.package(input_path, output)
+    typer.echo(f"Packaged: {result.output_path}")
+    if result.warnings:
+        for w in result.warnings:
+            typer.echo(f"Warning: {w}", err=True)
 
 
 qa_app = typer.Typer(help="QA operations")
