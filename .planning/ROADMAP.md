@@ -122,6 +122,12 @@ Plans:
   2. Validation report output includes remediation steps after errors and warnings
   3. Error messages reference spec locations (e.g., "dashboard_spec.yaml line 42: sheet 'SalesMap' references undefined datasource")
 
+**Plans**: 2 plans in 2 waves
+
+Plans:
+- [ ] 06-01: Add spec_file/spec_line/remediation fields to SemanticIssue, rewrite _build_spec_index with yaml.compose() line tracking, add REMEDIATION_MAP, add unit tests (VAL-03, SPEC-04)
+- [ ] 06-02: Update validate-semantic CLI output format with line numbers and remediation, add integration tests (VAL-03, SPEC-04)
+
 ### Phase 7: Package and Publish Pipeline Completion
 **Goal**: Wire the three unwired Phase 3 components (PackageVerifier, RESTFallbackPublisher, PublishSpec) into the CLI and publish pipeline so packaging verifies integrity and publishing supports fallback and spec-driven configuration.
 **Depends on**: Phase 3, Phase 5
@@ -144,5 +150,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 3. Packaging and Publishing | 0/3 | Planned | - |
 | 4. Agent Skills and MCP Integration | 0/4 | Planned | - |
 | 5. XSD Path Fix and Validation Pipeline Repair | 0/1 | Planned | - |
-| 6. Semantic Validation Enhancement | 0/? | Planned | - |
+| 6. Semantic Validation Enhancement | 0/2 | Planned | - |
 | 7. Package and Publish Pipeline Completion | 0/? | Planned | - |
