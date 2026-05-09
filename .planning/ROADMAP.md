@@ -110,7 +110,7 @@ Plans:
 **Plans**: 1 plan in 1 wave
 
 Plans:
-- [ ] 05-01: Fix XSD path constant, add CLI execution tests, remove pipeline workaround (VAL-01, VAL-04, SKILL-03)
+- [x] 05-01: Fix XSD path constant, add CLI execution tests, remove pipeline workaround (VAL-01, VAL-04, SKILL-03)
 
 ### Phase 6: Semantic Validation Enhancement
 **Goal**: Wire the --spec option to SemanticValidator so semantic errors map back to spec line numbers, and add remediation steps to validation reports.
