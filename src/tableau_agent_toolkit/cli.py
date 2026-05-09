@@ -23,6 +23,7 @@ import typer
 
 from tableau_agent_toolkit.packaging.packager import WorkbookPackager
 from tableau_agent_toolkit.packaging.verifier import PackageVerifier
+from tableau_agent_toolkit.publishing.fallback import RESTFallbackPublisher
 from tableau_agent_toolkit.publishing.publisher import TSCPublisher
 from tableau_agent_toolkit.security.settings import Settings
 from tableau_agent_toolkit.qa.checker import StaticQAChecker
@@ -208,13 +209,13 @@ def publish(
         help="Path to .twb or .twbx file to publish",
         exists=True,
     ),
-    server: str = typer.Option(
-        ...,
+    server: Optional[str] = typer.Option(
+        None,
         "--server",
         help="Tableau Server URL (e.g. https://tableau.example.com)",
     ),
-    project: str = typer.Option(
-        ...,
+    project: Optional[str] = typer.Option(
+        None,
         "--project",
         help="Target project name on Tableau Server",
     ),
@@ -223,10 +224,15 @@ def publish(
         "--site",
         help="Target site contentUrl (empty string for default site)",
     ),
-    mode: str = typer.Option(
-        "CreateNew",
+    mode: Optional[str] = typer.Option(
+        None,
         "--mode",
         help="Publish mode: CreateNew or Overwrite",
+    ),
+    spec_path: Optional[Path] = typer.Option(
+        None,
+        "--spec",
+        help="Path to spec for publish defaults",
     ),
 ) -> None:
     """Publish a workbook to Tableau Server or Cloud.
@@ -235,10 +241,37 @@ def publish(
     it is automatically packaged into a .twbx before publishing.
     Uses PAT authentication via TABLEAU_PAT_NAME and TABLEAU_PAT_SECRET
     environment variables.
+
+    When --spec is provided, reads project/site/mode defaults from the
+    spec's publish section. CLI args always override spec values.
     """
+    # Resolve spec-driven defaults
+    effective_mode = mode
+    if spec_path:
+        dashboard_spec = load_spec(spec_path)
+        if dashboard_spec.publish:
+            pub = dashboard_spec.publish
+            project = project or pub.project
+            site = site or pub.site_id
+            effective_mode = effective_mode or pub.mode.value
+
+    # Apply defaults for values not set by spec or CLI
+    effective_mode = effective_mode or "CreateNew"
+
+    # Validate required args
+    if not project:
+        typer.echo(
+            "Error: --project is required (or provide --spec with publish.project)",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
     # Validate mode
-    if mode not in ("CreateNew", "Overwrite"):
-        typer.echo(f"Error: Invalid mode '{mode}'. Must be CreateNew or Overwrite.", err=True)
+    if effective_mode not in ("CreateNew", "Overwrite"):
+        typer.echo(
+            f"Error: Invalid mode '{effective_mode}'. Must be CreateNew or Overwrite.",
+            err=True,
+        )
         raise typer.Exit(code=1)
 
     publish_path = input_path
@@ -262,24 +295,45 @@ def publish(
         )
         raise typer.Exit(code=1)
 
-    # Publish
+    # Resolve server URL: CLI arg > env var
+    effective_server = server or settings.server_url
+    if not effective_server:
+        typer.echo(
+            "Error: --server or TABLEAU_SERVER_URL env var required",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+    # Publish with TSC, fall back to REST API
+    receipt = None
     publisher = TSCPublisher(settings=settings)
     try:
         receipt = publisher.publish(
             file_path=publish_path,
             project_name=project,
-            mode=mode,
-            server_url=server,
+            mode=effective_mode,
+            server_url=effective_server,
             site_id=site,
         )
-    except FileNotFoundError as e:
-        typer.echo(f"Error: {e}", err=True)
-        raise typer.Exit(code=1)
-    except ValueError as e:
-        typer.echo(f"Error: {e}", err=True)
-        raise typer.Exit(code=1)
-    except RuntimeError as e:
-        typer.echo(f"Error: {e}", err=True)
+    except Exception as e:
+        typer.echo(f"TSC publish failed: {e}", err=True)
+        typer.echo("Attempting REST API fallback...", err=True)
+        try:
+            fallback = RESTFallbackPublisher(settings=settings)
+            receipt = fallback.publish(
+                file_path=publish_path,
+                project_name=project,
+                mode=effective_mode,
+                server_url=effective_server,
+                site_id=site,
+            )
+            typer.echo("Published via REST API fallback")
+        except Exception as fallback_e:
+            typer.echo(f"REST API fallback also failed: {fallback_e}", err=True)
+            raise typer.Exit(code=1)
+
+    if receipt is None:
+        typer.echo("Error: No publish receipt returned", err=True)
         raise typer.Exit(code=1)
 
     typer.echo(f"Published: {receipt.workbook_name} (ID: {receipt.workbook_id})")
