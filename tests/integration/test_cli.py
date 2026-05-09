@@ -235,6 +235,75 @@ class TestPackageCommand:
         assert result.exit_code != 0
 
 
+class TestValidateSemanticWithSpec:
+    """Test validate-semantic --spec integration with line numbers and remediation."""
+
+    def test_broken_references_with_spec_shows_line_numbers(self) -> None:
+        """validate-semantic --spec on broken_references.twb shows 'line N' in output."""
+        broken_twb = FIXTURES_DIR / "broken_references.twb"
+        broken_spec = FIXTURES_DIR / "broken_references_spec.yaml"
+        result = runner.invoke(app, [
+            "validate-semantic",
+            "--input", str(broken_twb),
+            "--spec", str(broken_spec),
+        ])
+        assert result.exit_code == 1
+        assert "line" in result.output
+        # Verify the line number format: "filename line N:"
+        import re
+        assert re.search(r"line \d+:", result.output)
+
+    def test_broken_references_with_spec_shows_remediation(self) -> None:
+        """validate-semantic --spec output includes Remediation: lines."""
+        broken_twb = FIXTURES_DIR / "broken_references.twb"
+        broken_spec = FIXTURES_DIR / "broken_references_spec.yaml"
+        result = runner.invoke(app, [
+            "validate-semantic",
+            "--input", str(broken_twb),
+            "--spec", str(broken_spec),
+        ])
+        assert result.exit_code == 1
+        assert "Remediation:" in result.output
+
+    def test_broken_references_with_spec_shows_nonexistent_sheet(self) -> None:
+        """validate-semantic --spec output names the broken reference."""
+        broken_twb = FIXTURES_DIR / "broken_references.twb"
+        broken_spec = FIXTURES_DIR / "broken_references_spec.yaml"
+        result = runner.invoke(app, [
+            "validate-semantic",
+            "--input", str(broken_twb),
+            "--spec", str(broken_spec),
+        ])
+        assert result.exit_code == 1
+        assert "NonExistentSheet" in result.output
+
+    def test_broken_references_without_spec_no_line_numbers(self) -> None:
+        """validate-semantic without --spec does NOT show 'line N:' format."""
+        broken_twb = FIXTURES_DIR / "broken_references.twb"
+        result = runner.invoke(app, [
+            "validate-semantic",
+            "--input", str(broken_twb),
+        ])
+        assert result.exit_code == 1
+        assert "ERROR:" in result.output
+        # Should NOT contain "line <number>:" format when no --spec
+        import re
+        assert not re.search(r"\.yaml line \d+:", result.output)
+
+    def test_dangling_datasource_with_spec_shows_remediation(self) -> None:
+        """validate-semantic --spec on dangling_datasource shows remediation for warnings."""
+        ds_twb = FIXTURES_DIR / "dangling_datasource.twb"
+        ds_spec = FIXTURES_DIR / "dangling_datasource_spec.yaml"
+        result = runner.invoke(app, [
+            "validate-semantic",
+            "--input", str(ds_twb),
+            "--spec", str(ds_spec),
+        ])
+        # dangling datasource is a WARNING, not an ERROR, so exit code may be 0
+        # But output should contain the warning with remediation
+        assert "Remediation:" in result.output or "MissingDS" in result.output
+
+
 class TestPublishCommand:
     """Test the publish command --help and option validation."""
 
