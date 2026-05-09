@@ -79,7 +79,7 @@ class TestWorkbookPackager:
         assets_dir = tmp_path / "Data"
         assets_dir.mkdir()
         asset_file = assets_dir / "extract.hyper"
-        asset_file.write_bytes(b"\x00\x01\x02\x03", encoding=None)  # type: ignore[call-overload]
+        asset_file.write_bytes(b"\x00\x01\x02\x03")
 
         output = tmp_path / "output.twbx"
         packager = WorkbookPackager()
@@ -147,7 +147,7 @@ class TestPackageVerifier:
 
         assert result.valid is False
         assert len(result.errors) > 0
-        assert "not a valid ZIP" in result.errors[0]
+        assert "Not a valid ZIP" in result.errors[0]
 
     def test_verify_twbx_with_invalid_inner_xml_returns_invalid(
         self, tmp_path: Path
