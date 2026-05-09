@@ -31,9 +31,11 @@ git clone https://github.com/Kokoabassplayer/tableau-agent-toolkit.git
 
 ### Python CLI (standalone)
 
-The toolkit also works as a standalone CLI without an AI agent:
+The toolkit also works as a standalone CLI without an AI agent. Clone the repo first, then install in editable mode:
 
 ```bash
+git clone https://github.com/Kokoabassplayer/tableau-agent-toolkit.git
+cd tableau-agent-toolkit
 pip install -e .
 ```
 
