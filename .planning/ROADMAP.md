@@ -141,8 +141,8 @@ Plans:
 **Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 07-01: Wire PackageVerifier into package CLI command with integration tests (PKG-02)
-- [ ] 07-02: Wire REST fallback and spec-driven publish into publish command with integration tests (PUB-01, PUB-02)
+- [x] 07-01: Wire PackageVerifier into package CLI command with integration tests (PKG-02)
+- [x] 07-02: Wire REST fallback and spec-driven publish into publish command with integration tests (PUB-01, PUB-02)
 
 ## Progress
 
