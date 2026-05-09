@@ -167,6 +167,10 @@ class TestHelpDiscovery:
         result = runner.invoke(app, ["--help"])
         assert "package" in result.output
 
+    def test_help_shows_publish_command(self) -> None:
+        result = runner.invoke(app, ["--help"])
+        assert "publish" in result.output
+
 
 class TestPackageCommand:
     """Test the package command --help and execution."""
@@ -196,3 +200,54 @@ class TestPackageCommand:
     def test_package_nonexistent_input_exits_nonzero(self) -> None:
         result = runner.invoke(app, ["package", "--input", "nonexistent.twb"])
         assert result.exit_code != 0
+
+
+class TestPublishCommand:
+    """Test the publish command --help and option validation."""
+
+    def test_publish_help_exits_zero(self) -> None:
+        result = runner.invoke(app, ["publish", "--help"])
+        assert result.exit_code == 0
+
+    def test_publish_help_shows_input_option(self) -> None:
+        result = runner.invoke(app, ["publish", "--help"])
+        assert "--input" in result.output
+
+    def test_publish_help_shows_server_option(self) -> None:
+        result = runner.invoke(app, ["publish", "--help"])
+        assert "--server" in result.output
+
+    def test_publish_help_shows_project_option(self) -> None:
+        result = runner.invoke(app, ["publish", "--help"])
+        assert "--project" in result.output
+
+    def test_publish_help_shows_mode_option(self) -> None:
+        result = runner.invoke(app, ["publish", "--help"])
+        assert "--mode" in result.output
+
+    def test_publish_missing_server_exits_nonzero(self, tmp_path: Path) -> None:
+        """publish without --server should fail."""
+        twb = tmp_path / "test.twb"
+        twb.write_text("<workbook/>", encoding="utf-8")
+        result = runner.invoke(app, ["publish", "--input", str(twb), "--project", "Test"])
+        assert result.exit_code != 0
+
+    def test_publish_missing_project_exits_nonzero(self, tmp_path: Path) -> None:
+        """publish without --project should fail."""
+        twb = tmp_path / "test.twb"
+        twb.write_text("<workbook/>", encoding="utf-8")
+        result = runner.invoke(app, ["publish", "--input", str(twb), "--server", "https://example.com"])
+        assert result.exit_code != 0
+
+    def test_publish_invalid_mode_exits_nonzero(self, tmp_path: Path) -> None:
+        """publish with invalid --mode should fail with error message."""
+        twb = tmp_path / "test.twb"
+        twb.write_text("<workbook/>", encoding="utf-8")
+        result = runner.invoke(app, [
+            "publish", "--input", str(twb),
+            "--server", "https://example.com",
+            "--project", "Test",
+            "--mode", "InvalidMode",
+        ])
+        assert result.exit_code != 0
+        assert "Invalid mode" in result.output

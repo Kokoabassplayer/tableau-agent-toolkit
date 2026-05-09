@@ -5,6 +5,7 @@ Provides the main CLI application with commands:
 - validate-xsd: Validate a TWB file against pinned XSD schema
 - validate-semantic: Validate TWB cross-references
 - package: Package a .twb file into a .twbx archive
+- publish: Publish a workbook to Tableau Server/Cloud
 - spec init: Generate a starter dashboard_spec.yaml
 - qa static: Run static QA checks and generate report
 
@@ -13,12 +14,15 @@ The entry point is registered in pyproject.toml as:
 """
 
 import sys
+import tempfile
 from pathlib import Path
 from typing import Optional
 
 import typer
 
 from tableau_agent_toolkit.packaging.packager import WorkbookPackager
+from tableau_agent_toolkit.publishing.publisher import TSCPublisher
+from tableau_agent_toolkit.security.settings import Settings
 from tableau_agent_toolkit.qa.checker import StaticQAChecker
 from tableau_agent_toolkit.qa.report import generate_qa_report
 from tableau_agent_toolkit.spec.io import load_spec, dump_spec
@@ -172,6 +176,99 @@ def package(
     if result.warnings:
         for w in result.warnings:
             typer.echo(f"Warning: {w}", err=True)
+
+
+@app.command("publish")
+def publish(
+    input_path: Path = typer.Option(
+        ...,
+        "--input",
+        help="Path to .twb or .twbx file to publish",
+        exists=True,
+    ),
+    server: str = typer.Option(
+        ...,
+        "--server",
+        help="Tableau Server URL (e.g. https://tableau.example.com)",
+    ),
+    project: str = typer.Option(
+        ...,
+        "--project",
+        help="Target project name on Tableau Server",
+    ),
+    site: str = typer.Option(
+        "",
+        "--site",
+        help="Target site contentUrl (empty string for default site)",
+    ),
+    mode: str = typer.Option(
+        "CreateNew",
+        "--mode",
+        help="Publish mode: CreateNew or Overwrite",
+    ),
+) -> None:
+    """Publish a workbook to Tableau Server or Cloud.
+
+    Accepts both .twb and .twbx files. If a .twb file is provided,
+    it is automatically packaged into a .twbx before publishing.
+    Uses PAT authentication via TABLEAU_PAT_NAME and TABLEAU_PAT_SECRET
+    environment variables.
+    """
+    # Validate mode
+    if mode not in ("CreateNew", "Overwrite"):
+        typer.echo(f"Error: Invalid mode '{mode}'. Must be CreateNew or Overwrite.", err=True)
+        raise typer.Exit(code=1)
+
+    publish_path = input_path
+
+    # Auto-package .twb to .twbx
+    if input_path.suffix.lower() == ".twb":
+        typer.echo(f"Auto-packaging {input_path.name} to .twbx...")
+        packager = WorkbookPackager()
+        tmp_dir = tempfile.mkdtemp()
+        twbx_path = Path(tmp_dir) / f"{input_path.stem}.twbx"
+        package_result = packager.package(input_path, twbx_path)
+        publish_path = package_result.output_path
+        typer.echo(f"Packaged to: {publish_path}")
+
+    # Load credentials from env
+    settings = Settings()
+    if not settings.pat_name or not settings.pat_secret.get_secret_value():
+        typer.echo(
+            "Error: TABLEAU_PAT_NAME and TABLEAU_PAT_SECRET environment variables must be set.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+    # Publish
+    publisher = TSCPublisher(settings=settings)
+    try:
+        receipt = publisher.publish(
+            file_path=publish_path,
+            project_name=project,
+            mode=mode,
+            server_url=server,
+            site_id=site,
+        )
+    except FileNotFoundError as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=1)
+    except ValueError as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=1)
+    except RuntimeError as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=1)
+
+    typer.echo(f"Published: {receipt.workbook_name} (ID: {receipt.workbook_id})")
+    typer.echo(f"  Mode: {receipt.mode}")
+    typer.echo(f"  Project: {receipt.project_name} (ID: {receipt.project_id})")
+    typer.echo(f"  Site: {receipt.site_id or '(default)'}")
+    typer.echo(f"  Server: {receipt.server_url}")
+    typer.echo(f"  File: {receipt.file_path} ({receipt.file_size_bytes} bytes)")
+    if receipt.verification_details:
+        for detail in receipt.verification_details:
+            typer.echo(f"  Verification: {detail}")
 
 
 qa_app = typer.Typer(help="QA operations")
