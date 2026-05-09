@@ -24,8 +24,8 @@ Deterministic workbook generation from spec + template — the same `dashboard_s
 - [ ] Template-first TWB generator using lxml-based XML patching
 - [x] XSD validation against pinned `tableau-document-schemas` — Validated in Phase 05
 - [x] Semantic validation (sheet refs, calc names, action targets, field references) — Validated in Phase 06
-- [ ] `.twbx` packager (separate step from `.twb` generation)
-- [ ] Tableau Server Client publisher with PAT auth (REST fallback)
+- [x] `.twbx` packager with integrity verification (separate step from `.twb` generation) — Validated in Phase 07
+- [x] Tableau Server Client publisher with PAT auth and REST fallback — Validated in Phase 07
 - [ ] Template registry with compatibility rules and version management
 - [ ] `<ManifestByVersion />` support for direct workbook authoring
 - [ ] Static QA checks and optional sandbox publish smoke tests
