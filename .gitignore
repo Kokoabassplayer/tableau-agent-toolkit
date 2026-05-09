@@ -27,3 +27,13 @@ htmlcov/
 
 # Ruff
 .ruff_cache/
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Claude Code session files
+.claude/scheduled_tasks.lock
+.claude/worktrees/
