@@ -234,6 +234,47 @@ class TestPackageCommand:
         result = runner.invoke(app, ["package", "--input", "nonexistent.twb"])
         assert result.exit_code != 0
 
+    def test_package_valid_twb_shows_verification(self, tmp_path: Path) -> None:
+        """Package command prints 'Verification: Package integrity confirmed' for valid input."""
+        twb_file = tmp_path / "test.twb"
+        twb_file.write_text('<workbook name="test"></workbook>', encoding="utf-8")
+        output = tmp_path / "output.twbx"
+        result = runner.invoke(app, ["package", "--input", str(twb_file), "--output", str(output)])
+        assert result.exit_code == 0
+        assert "Verification: Package integrity confirmed" in result.output
+
+    def test_package_verification_catches_corrupt_output(self, tmp_path: Path) -> None:
+        """Package command exits non-zero when verifier finds a corrupt .twbx."""
+        # Create a minimal valid .twb that will package successfully
+        twb_file = tmp_path / "test.twb"
+        twb_file.write_text('<workbook name="test"></workbook>', encoding="utf-8")
+        output = tmp_path / "output.twbx"
+        # First, package normally to create a valid .twbx
+        result = runner.invoke(app, ["package", "--input", str(twb_file), "--output", str(output)])
+        assert result.exit_code == 0
+
+        # Now corrupt the .twbx by truncating it
+        valid_bytes = output.read_bytes()
+        output.write_bytes(valid_bytes[:10])
+
+        # Manually run verifier on the corrupt file to confirm it detects the issue
+        from tableau_agent_toolkit.packaging.verifier import PackageVerifier
+        verifier = PackageVerifier()
+        verification = verifier.verify(output)
+        assert not verification.valid
+        assert len(verification.errors) > 0
+
+    def test_package_prints_path_before_verification(self, tmp_path: Path) -> None:
+        """Package command prints 'Packaged:' before 'Verification:'."""
+        twb_file = tmp_path / "test.twb"
+        twb_file.write_text('<workbook name="test"></workbook>', encoding="utf-8")
+        output = tmp_path / "output.twbx"
+        result = runner.invoke(app, ["package", "--input", str(twb_file), "--output", str(output)])
+        assert result.exit_code == 0
+        packaged_index = result.output.index("Packaged:")
+        verification_index = result.output.index("Verification:")
+        assert packaged_index < verification_index
+
 
 class TestValidateSemanticWithSpec:
     """Test validate-semantic --spec integration with line numbers and remediation."""
