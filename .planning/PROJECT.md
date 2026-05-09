@@ -14,7 +14,8 @@ Deterministic workbook generation from spec + template — the same `dashboard_s
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] 5 shared agent skills (spec writer, TWB generator, validator, QA reviewer, publisher) — Validated in Phase 04
+- [x] Dual plugin manifests (`.claude-plugin/plugin.json` + `.codex-plugin/plugin.json`) — Validated in Phase 04
 
 ### Active
 
@@ -27,8 +28,7 @@ Deterministic workbook generation from spec + template — the same `dashboard_s
 - [ ] Tableau Server Client publisher with PAT auth (REST fallback)
 - [ ] Template registry with compatibility rules and version management
 - [ ] `<ManifestByVersion />` support for direct workbook authoring
-- [ ] 5 shared agent skills (spec writer, TWB generator, validator, QA reviewer, publisher)
-- [ ] Dual plugin manifests (`.claude-plugin/plugin.json` + `.codex-plugin/plugin.json`)
+- [ ] Static QA checks and optional sandbox publish smoke tests
 - [ ] Static QA checks and optional sandbox publish smoke tests
 - [ ] CLI commands: `spec init`, `generate`, `validate-xsd`, `validate-semantic`, `qa static`, `package`, `publish`, `report`
 
@@ -85,4 +85,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-08 after initialization*
+*Last updated: 2026-05-09 after Phase 04 completion*
