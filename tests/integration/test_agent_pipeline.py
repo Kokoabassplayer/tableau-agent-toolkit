@@ -18,7 +18,6 @@ import pytest
 from typer.testing import CliRunner
 
 from tableau_agent_toolkit.cli import app
-from tableau_agent_toolkit.validation.xsd import XsdValidator
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 SKILLS_DIR = PROJECT_ROOT / "skills"
@@ -48,7 +47,7 @@ runner = CliRunner()
 class TestFullPipeline:
     """Run the full spec-to-package pipeline using CLI commands documented in skills."""
 
-    def test_full_spec_to_package_pipeline(self, tmp_path: Path) -> None:
+    def test_full_spec_to_package_pipeline(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Exercise generate -> validate-xsd -> validate-semantic -> qa static -> package.
 
         This mirrors the pipeline an agent would follow when invoking skills 2-5.
@@ -88,19 +87,14 @@ class TestFullPipeline:
         assert generated_twb.exists(), "generate did not produce output .twb"
 
         # Step 2: XSD validation (from tableau-twb-validator skill, step 1)
-        # NOTE: The validate-xsd CLI command has a pre-existing path issue where it
-        # looks for schemas at third_party/tableau_document_schemas/ but the actual
-        # schema files are under third_party/tableau_document_schemas/schemas/. We
-        # use XsdValidator directly with the fixture schemas root to test the actual
-        # validation logic while the CLI path issue is resolved separately.
         # We validate valid_full.twb since it is XSD-conformant.
-        fixture_schemas_root = FIXTURES_DIR / "schemas"
-        xsd_validator = XsdValidator(schemas_root=fixture_schemas_root)
-        xsd_result = xsd_validator.validate(valid_twb, tableau_version="2026.1")
-        assert xsd_result.valid, (
-            f"validate-xsd failed on valid_full.twb: "
-            + "; ".join(f"Line {e.line}: {e.message}" for e in xsd_result.errors)
+        monkeypatch.setenv("TABLEAU_SCHEMAS_ROOT", str(FIXTURES_DIR / "schemas"))
+        result = runner.invoke(
+            app,
+            ["validate-xsd", str(valid_twb)],
         )
+        assert result.exit_code == 0, f"validate-xsd failed: {result.output}"
+        assert "Valid" in result.output or "passes" in result.output
 
         # Step 3: Semantic validation (from tableau-twb-validator skill, step 2)
         result = runner.invoke(
