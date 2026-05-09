@@ -162,3 +162,37 @@ class TestHelpDiscovery:
     def test_help_shows_qa_subcommand(self) -> None:
         result = runner.invoke(app, ["--help"])
         assert "qa" in result.output.lower()
+
+    def test_help_shows_package_command(self) -> None:
+        result = runner.invoke(app, ["--help"])
+        assert "package" in result.output
+
+
+class TestPackageCommand:
+    """Test the package command --help and execution."""
+
+    def test_package_help_exits_zero(self) -> None:
+        result = runner.invoke(app, ["package", "--help"])
+        assert result.exit_code == 0
+
+    def test_package_help_shows_input_option(self) -> None:
+        result = runner.invoke(app, ["package", "--help"])
+        assert "--input" in result.output
+
+    def test_package_help_shows_output_option(self) -> None:
+        result = runner.invoke(app, ["package", "--help"])
+        assert "--output" in result.output
+
+    def test_package_valid_twb_creates_twbx(self, tmp_path: Path) -> None:
+        """Package command on a valid .twb creates a .twbx and prints 'Packaged:'."""
+        twb_file = tmp_path / "test.twb"
+        twb_file.write_text('<workbook name="test"></workbook>', encoding="utf-8")
+        output = tmp_path / "output.twbx"
+        result = runner.invoke(app, ["package", "--input", str(twb_file), "--output", str(output)])
+        assert result.exit_code == 0
+        assert "Packaged:" in result.output
+        assert output.exists()
+
+    def test_package_nonexistent_input_exits_nonzero(self) -> None:
+        result = runner.invoke(app, ["package", "--input", "nonexistent.twb"])
+        assert result.exit_code != 0
