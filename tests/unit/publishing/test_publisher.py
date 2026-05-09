@@ -86,6 +86,9 @@ def test_publish_creates_receipt(settings, twb_file, mock_project, mock_workbook
         mock_tsc.Server.return_value = mock_server
         mock_tsc.PersonalAccessTokenAuth.return_value = MagicMock()
         mock_tsc.Server.PublishMode.CreateNew = TSC.Server.PublishMode.CreateNew
+        mock_tsc.Server.PublishMode.Overwrite = TSC.Server.PublishMode.Overwrite
+        mock_tsc.JobItem = TSC.JobItem
+        mock_tsc.WorkbookItem = TSC.WorkbookItem
 
         publisher = TSCPublisher(settings)
         receipt = publisher.publish(twb_file, "Test Project")
@@ -109,6 +112,9 @@ def test_publish_resolves_project_by_name(settings, twb_file, mock_project, mock
         mock_tsc.Server.return_value = mock_server
         mock_tsc.PersonalAccessTokenAuth.return_value = MagicMock()
         mock_tsc.Server.PublishMode.CreateNew = TSC.Server.PublishMode.CreateNew
+        mock_tsc.Server.PublishMode.Overwrite = TSC.Server.PublishMode.Overwrite
+        mock_tsc.JobItem = TSC.JobItem
+        mock_tsc.WorkbookItem = TSC.WorkbookItem
 
         publisher = TSCPublisher(settings)
         publisher.publish(twb_file, "My Target Project")
@@ -129,6 +135,8 @@ def test_publish_overwrite_mode(settings, twb_file, mock_project, mock_workbook_
         mock_tsc.PersonalAccessTokenAuth.return_value = MagicMock()
         mock_tsc.Server.PublishMode.Overwrite = TSC.Server.PublishMode.Overwrite
         mock_tsc.Server.PublishMode.CreateNew = TSC.Server.PublishMode.CreateNew
+        mock_tsc.JobItem = TSC.JobItem
+        mock_tsc.WorkbookItem = TSC.WorkbookItem
 
         publisher = TSCPublisher(settings)
         publisher.publish(twb_file, "Test Project", mode="Overwrite")
@@ -151,6 +159,8 @@ def test_publish_createnew_mode(settings, twb_file, mock_project, mock_workbook_
         mock_tsc.PersonalAccessTokenAuth.return_value = MagicMock()
         mock_tsc.Server.PublishMode.CreateNew = TSC.Server.PublishMode.CreateNew
         mock_tsc.Server.PublishMode.Overwrite = TSC.Server.PublishMode.Overwrite
+        mock_tsc.JobItem = TSC.JobItem
+        mock_tsc.WorkbookItem = TSC.WorkbookItem
 
         publisher = TSCPublisher(settings)
         publisher.publish(twb_file, "Test Project", mode="CreateNew")
@@ -191,7 +201,9 @@ def test_publish_async_for_large_file(settings, tmp_path, mock_project):
         mock_tsc.Server.return_value = mock_server
         mock_tsc.PersonalAccessTokenAuth.return_value = MagicMock()
         mock_tsc.Server.PublishMode.CreateNew = TSC.Server.PublishMode.CreateNew
+        mock_tsc.Server.PublishMode.Overwrite = TSC.Server.PublishMode.Overwrite
         mock_tsc.JobItem = TSC.JobItem
+        mock_tsc.WorkbookItem = TSC.WorkbookItem
 
         # Mock file size to be > 64MB
         with patch.object(Path, "stat") as mock_stat:
@@ -223,6 +235,9 @@ def test_publish_sync_for_small_file(settings, twb_file, mock_project, mock_work
         mock_tsc.Server.return_value = mock_server
         mock_tsc.PersonalAccessTokenAuth.return_value = MagicMock()
         mock_tsc.Server.PublishMode.CreateNew = TSC.Server.PublishMode.CreateNew
+        mock_tsc.Server.PublishMode.Overwrite = TSC.Server.PublishMode.Overwrite
+        mock_tsc.JobItem = TSC.JobItem
+        mock_tsc.WorkbookItem = TSC.WorkbookItem
 
         publisher = TSCPublisher(settings)
         receipt = publisher.publish(twb_file, "Test Project")
@@ -252,6 +267,10 @@ def test_publish_project_not_found_raises_valueerror(settings, twb_file):
     with patch("tableau_agent_toolkit.publishing.publisher.TSC") as mock_tsc:
         mock_tsc.Server.return_value = mock_server
         mock_tsc.PersonalAccessTokenAuth.return_value = MagicMock()
+        mock_tsc.Server.PublishMode.CreateNew = TSC.Server.PublishMode.CreateNew
+        mock_tsc.Server.PublishMode.Overwrite = TSC.Server.PublishMode.Overwrite
+        mock_tsc.JobItem = TSC.JobItem
+        mock_tsc.WorkbookItem = TSC.WorkbookItem
 
         publisher = TSCPublisher(settings)
         with pytest.raises(ValueError, match="Project 'Missing Project' not found"):
@@ -390,6 +409,9 @@ def test_publish_context_manager_signs_out(settings, twb_file, mock_project, moc
         mock_tsc.Server.return_value = mock_server
         mock_tsc.PersonalAccessTokenAuth.return_value = MagicMock()
         mock_tsc.Server.PublishMode.CreateNew = TSC.Server.PublishMode.CreateNew
+        mock_tsc.Server.PublishMode.Overwrite = TSC.Server.PublishMode.Overwrite
+        mock_tsc.JobItem = TSC.JobItem
+        mock_tsc.WorkbookItem = TSC.WorkbookItem
 
         publisher = TSCPublisher(settings)
         publisher.publish(twb_file, "Test Project")
