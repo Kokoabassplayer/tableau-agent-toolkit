@@ -86,11 +86,11 @@ Plans:
   4. Both `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json` manifests exist with correct skill references
   5. `CLAUDE.md` and `AGENTS.md` project-level instructions exist, and optional `.mcp.json` wiring connects to Tableau MCP for post-publish metadata queries
 
-**Plans**: TBD
+**Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01: Plugin manifests, MCP config, AGENTS.md, CLAUDE.md update, spec-writer skill, and generator skill (SKILL-01, SKILL-02, SKILL-06, SKILL-07, MCP-02)
+- [ ] 04-02: Validator, QA reviewer, and publisher skills with MCP integration references (SKILL-03, SKILL-04, SKILL-05, MCP-01, MCP-03)
 
 ## Progress
 
@@ -102,4 +102,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. Spec, Generation, CLI, and Project Scaffolding | 0/5 | Not started | - |
 | 2. Validation and QA | 0/4 | Not started | - |
 | 3. Packaging and Publishing | 0/3 | Planned | - |
-| 4. Agent Skills and MCP Integration | 0/? | Not started | - |
+| 4. Agent Skills and MCP Integration | 0/2 | Planned | - |
