@@ -123,7 +123,14 @@ Architecture not yet mapped. Follow existing patterns found in the codebase.
 <!-- GSD:skills-start source:skills/ -->
 ## Project Skills
 
-No project skills found. Add skills to any of: `.claude/skills/`, `.agents/skills/`, `.cursor/skills/`, or `.github/skills/` with a `SKILL.md` index file.
+Five agent skills in `skills/` directory:
+- `tableau-dashboard-spec-writer` -- Convert business brief into dashboard_spec.yaml
+- `tableau-twb-generator` -- Generate .twb from spec and template
+- `tableau-twb-validator` -- XSD + semantic validation of .twb files
+- `tableau-dashboard-qa-reviewer` -- Static and optional sandbox QA checks
+- `tableau-publisher` -- Package and publish validated workbooks
+
+Pipeline order: spec init -> generate -> validate-xsd -> validate-semantic -> qa static -> package -> publish
 <!-- GSD:skills-end -->
 
 <!-- GSD:workflow-start source:GSD defaults -->

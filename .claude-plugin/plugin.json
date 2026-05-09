@@ -1,0 +1,24 @@
+{
+  "name": "tableau-agent-toolkit",
+  "description": "Generate, validate, package, and publish Tableau workbooks from YAML specs. Provides five composable skills for deterministic dashboard workflows.",
+  "version": "0.1.0",
+  "skills": [
+    "skills/tableau-dashboard-spec-writer",
+    "skills/tableau-twb-generator",
+    "skills/tableau-twb-validator",
+    "skills/tableau-dashboard-qa-reviewer",
+    "skills/tableau-publisher"
+  ],
+  "mcpServers": {
+    "tableau": {
+      "command": "npx",
+      "args": ["-y", "@tableau/mcp-server"],
+      "env": {
+        "SERVER": "${TABLEAU_SERVER_URL}",
+        "SITE_NAME": "${TABLEAU_SITE_NAME:-}",
+        "PAT_NAME": "${TABLEAU_PAT_NAME}",
+        "PAT_VALUE": "${TABLEAU_PAT_SECRET}"
+      }
+    }
+  }
+}
