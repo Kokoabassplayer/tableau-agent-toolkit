@@ -22,6 +22,7 @@ from typing import Optional
 import typer
 
 from tableau_agent_toolkit.packaging.packager import WorkbookPackager
+from tableau_agent_toolkit.packaging.verifier import PackageVerifier
 from tableau_agent_toolkit.publishing.publisher import TSCPublisher
 from tableau_agent_toolkit.security.settings import Settings
 from tableau_agent_toolkit.qa.checker import StaticQAChecker
@@ -187,6 +188,16 @@ def package(
     if result.warnings:
         for w in result.warnings:
             typer.echo(f"Warning: {w}", err=True)
+
+    # Verify package integrity
+    verifier = PackageVerifier()
+    verification = verifier.verify(result.output_path)
+    if verification.valid:
+        typer.echo("Verification: Package integrity confirmed")
+    else:
+        for error in verification.errors:
+            typer.echo(f"Verification error: {error}", err=True)
+        raise typer.Exit(code=1)
 
 
 @app.command("publish")
