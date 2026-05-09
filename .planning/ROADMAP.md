@@ -89,10 +89,10 @@ Plans:
 **Plans**: 4 plans in 3 waves
 
 Plans:
-- [ ] 04-01: Plugin manifests, MCP config, AGENTS.md, CLAUDE.md update, spec-writer skill, and generator skill (SKILL-01, SKILL-02, SKILL-06, SKILL-07, MCP-02)
-- [ ] 04-02: Validator, QA reviewer, and publisher skills with MCP integration references (SKILL-03, SKILL-04, SKILL-05, MCP-01, MCP-03)
-- [ ] 04-03: End-to-end pipeline integration test exercising all 5 skills' CLI commands (SKILL-01, SKILL-02, SKILL-03, SKILL-04, SKILL-05, SKILL-06, SKILL-07, MCP-01, MCP-02, MCP-03)
-- [ ] 04-04: Extended skill content quality tests (error handling, prerequisites, cross-references) (SKILL-01, SKILL-02, SKILL-03, SKILL-04, SKILL-05, SKILL-06, SKILL-07, MCP-01, MCP-02, MCP-03)
+- [x] 04-01: Plugin manifests, MCP config, AGENTS.md, CLAUDE.md update, spec-writer skill, and generator skill (SKILL-01, SKILL-02, SKILL-06, SKILL-07, MCP-02)
+- [x] 04-02: Validator, QA reviewer, and publisher skills with MCP integration references (SKILL-03, SKILL-04, SKILL-05, MCP-01, MCP-03)
+- [x] 04-03: End-to-end pipeline integration test exercising all 5 skills' CLI commands (SKILL-01, SKILL-02, SKILL-03, SKILL-04, SKILL-05, SKILL-06, SKILL-07, MCP-01, MCP-02, MCP-03)
+- [x] 04-04: Extended skill content quality tests (error handling, prerequisites, cross-references) (SKILL-01, SKILL-02, SKILL-03, SKILL-04, SKILL-05, SKILL-06, SKILL-07, MCP-01, MCP-02, MCP-03)
 
 ## Progress
 
