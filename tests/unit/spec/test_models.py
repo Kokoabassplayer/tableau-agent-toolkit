@@ -74,7 +74,7 @@ def test_full_spec():
             {"name": "Sheet1", "datasource": "ds1"},
         ],
         dashboards=[{"name": "Dashboard1"}],
-        publish={"server": "https://tableau.example.com", "project": "Finance"},
+        publish={"project": "Finance"},
         qa={"static_checks": True},
     )
     assert spec.workbook.packaging == PackagingEnum.twbx
