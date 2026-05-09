@@ -138,6 +138,12 @@ Plans:
   2. Publish command falls back to RESTFallbackPublisher when TSC publish fails
   3. Publish command reads server/project/site from spec.publish when not provided via CLI args
 
+**Plans**: 2 plans in 2 waves
+
+Plans:
+- [ ] 07-01: Wire PackageVerifier into package CLI command with integration tests (PKG-02)
+- [ ] 07-02: Wire REST fallback and spec-driven publish into publish command with integration tests (PUB-01, PUB-02)
+
 ## Progress
 
 **Execution Order:**
@@ -151,4 +157,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 4. Agent Skills and MCP Integration | 0/4 | Planned | - |
 | 5. XSD Path Fix and Validation Pipeline Repair | 0/1 | Planned | - |
 | 6. Semantic Validation Enhancement | 0/2 | Planned | - |
-| 7. Package and Publish Pipeline Completion | 0/? | Planned | - |
+| 7. Package and Publish Pipeline Completion | 0/2 | Planned | - |
