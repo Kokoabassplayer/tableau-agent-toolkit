@@ -60,3 +60,7 @@ If validation passes, the spec is structurally valid.
 - If `spec init` fails, check that the CLI is installed and the output path is writable
 - If Pydantic validation fails, the error message will name the invalid field and expected type
 - If template_id is not in the registry, note it in the spec and the generator will flag it
+
+## Pipeline Context
+- Previous step: None (this is the first step in the pipeline)
+- Next step: `tableau-twb-generator` (generates the .twb from the spec)
