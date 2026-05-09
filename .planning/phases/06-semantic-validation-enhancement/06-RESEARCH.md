@@ -352,17 +352,17 @@ Source: [VERIFIED: matches success criterion 3]
 | A2 | `yaml.compose()` handles all spec YAML files in the project correctly | Pattern 1 | Complex YAML (anchors, multiline strings) could break line tracking. But our specs are simple (no anchors). Risk is LOW. |
 | A3 | The `spec_ref` string format "worksheets[2]" is useful alongside line numbers | Pattern 1 | Users may only care about line numbers, not the JSON path. But the JSON path provides machine-readable location for tooling. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should remediation be dynamic or static?**
    - What we know: VAL-03 says "remediation steps" in the report. The QA report already uses static per-category remediation text (qa/report.py line 77).
    - What's unclear: Whether remediation should reference specific elements (e.g., "Add datasource 'MissingDS' to spec") or be generic (e.g., "Add the missing datasource to spec").
-   - Recommendation: Start with static per-category remediation matching the QA report pattern. Dynamic remediation can be added later without breaking the interface.
+   - RESOLVED: Start with static per-category remediation matching the QA report pattern. Plans 06-01 and 06-02 implement REMEDIATION_MAP with static strings.
 
 2. **Should spec_line be populated for action source errors?**
    - What we know: Action source references in the TWB (`<source worksheet='MissingSheet'>`) map to spec elements. But the spec doesn't have an "actions" section -- actions are generated from dashboard configuration.
    - What's unclear: Whether there's a meaningful spec line to reference for broken action targets.
-   - Recommendation: Set `spec_ref`/`spec_line` to None for action errors where no direct spec mapping exists. The error message itself is still informative.
+   - RESOLVED: Set `spec_ref`/`spec_line` to None for action errors where no direct spec mapping exists. The error message itself is still informative. Plan 06-01 handles this via `.get()` returning None.
 
 ## Environment Availability
 

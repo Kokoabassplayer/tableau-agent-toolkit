@@ -1,9 +1,9 @@
 ---
 phase: 6
 slug: semantic-validation-enhancement
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: active
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-09
 ---
 
@@ -38,10 +38,8 @@ created: 2026-05-09
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 06-01-01 | 01 | 1 | VAL-03 | — | N/A | unit | `python -m pytest tests/test_spec_line_mapper.py -x -q` | ❌ W0 | ⬜ pending |
-| 06-01-02 | 01 | 1 | VAL-03 | — | N/A | unit | `python -m pytest tests/test_semantic_validator.py -x -q -k "spec_ref"` | ❌ W0 | ⬜ pending |
-| 06-01-03 | 01 | 1 | SPEC-04 | — | N/A | unit | `python -m pytest tests/test_semantic_validator.py -x -q -k "remediation"` | ❌ W0 | ⬜ pending |
-| 06-02-01 | 02 | 1 | VAL-03 | — | N/A | integration | `python -m pytest tests/test_validate_semantic_cli.py -x -q -k "spec"` | ❌ W0 | ⬜ pending |
+| 06-01-01 | 01 | 1 | VAL-03, SPEC-04 | — | N/A | unit | `python -m pytest tests/unit/validation/test_report.py tests/unit/validation/test_semantic.py -x -q --tb=short` | ❌ W0 | ⬜ pending |
+| 06-02-01 | 02 | 2 | VAL-03, SPEC-04 | — | N/A | integration | `python -m pytest tests/integration/test_cli.py::TestValidateSemanticWithSpec -x -q --tb=short` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,11 +47,11 @@ created: 2026-05-09
 
 ## Wave 0 Requirements
 
-- [ ] `tests/test_spec_line_mapper.py` — stubs for spec line mapping tests
-- [ ] `tests/test_semantic_validator.py` — existing file, add spec_ref and remediation test cases
-- [ ] `tests/test_validate_semantic_cli.py` — existing file, add --spec integration tests
+- [x] `tests/unit/validation/test_report.py` — created by Plan 01 Task 1 (SemanticIssue fields + remediation tests)
+- [x] `tests/unit/validation/test_semantic.py` — existing file, Plan 01 adds spec_line + remediation test cases
+- [x] `tests/integration/test_cli.py` — existing file, Plan 02 adds TestValidateSemanticWithSpec
 
-*If none: "Existing infrastructure covers all phase requirements."*
+Existing infrastructure covers all phase requirements.
 
 ---
 
@@ -67,11 +65,11 @@ created: 2026-05-09
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
