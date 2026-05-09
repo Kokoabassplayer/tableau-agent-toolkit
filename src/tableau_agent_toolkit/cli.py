@@ -141,16 +141,23 @@ def validate_semantic(
         typer.echo(f"Valid: {input_path} passes semantic validation")
     else:
         typer.echo(f"Invalid: {input_path} failed semantic validation", err=True)
-        for err in result.errors:
+    for err in result.errors:
+        if err.spec_file and err.spec_line:
+            msg = f"  ERROR: {err.spec_file} line {err.spec_line}: {err.message}"
+        else:
             msg = f"  ERROR: {err.message}"
-            if err.spec_ref:
-                msg += f" (spec: {err.spec_ref})"
-            typer.echo(msg, err=True)
-        for warn in result.warnings:
+        typer.echo(msg, err=True)
+        if err.remediation:
+            typer.echo(f"    Remediation: {err.remediation}", err=True)
+    for warn in result.warnings:
+        if warn.spec_file and warn.spec_line:
+            msg = f"  WARNING: {warn.spec_file} line {warn.spec_line}: {warn.message}"
+        else:
             msg = f"  WARNING: {warn.message}"
-            if warn.spec_ref:
-                msg += f" (spec: {warn.spec_ref})"
-            typer.echo(msg, err=True)
+        typer.echo(msg, err=True)
+        if warn.remediation:
+            typer.echo(f"    Remediation: {warn.remediation}", err=True)
+    if not result.valid:
         sys.exit(1)
 
 
