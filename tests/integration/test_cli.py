@@ -394,3 +394,148 @@ class TestPublishCommand:
         ])
         assert result.exit_code != 0
         assert "Invalid mode" in result.output
+
+    def test_publish_spec_provides_project(self, tmp_path: Path) -> None:
+        """Publish with --spec uses spec's publish.project when --project not given."""
+        twb = tmp_path / "test.twb"
+        twb.write_text("<workbook/>", encoding="utf-8")
+        spec_file = tmp_path / "spec.yaml"
+        spec_file.write_text(
+            "spec_version: '1.0'\n"
+            "workbook:\n"
+            "  name: test\n"
+            "  template:\n"
+            "    id: t1\n"
+            "    path: t.twb\n"
+            "publish:\n"
+            "  project: SpecProject\n",
+            encoding="utf-8",
+        )
+        result = runner.invoke(app, [
+            "publish", "--input", str(twb),
+            "--server", "https://example.com",
+            "--spec", str(spec_file),
+        ])
+        # Should fail at TSC publish (no real server), but should NOT fail
+        # with "Error: --project is required" -- proving spec provided it
+        assert "--project is required" not in result.output
+
+    def test_publish_cli_project_overrides_spec(self, tmp_path: Path) -> None:
+        """Publish --project overrides spec's publish.project."""
+        twb = tmp_path / "test.twb"
+        twb.write_text("<workbook/>", encoding="utf-8")
+        spec_file = tmp_path / "spec.yaml"
+        spec_file.write_text(
+            "spec_version: '1.0'\n"
+            "workbook:\n"
+            "  name: test\n"
+            "  template:\n"
+            "    id: t1\n"
+            "    path: t.twb\n"
+            "publish:\n"
+            "  project: SpecProject\n",
+            encoding="utf-8",
+        )
+        result = runner.invoke(app, [
+            "publish", "--input", str(twb),
+            "--server", "https://example.com",
+            "--project", "CLIProject",
+            "--spec", str(spec_file),
+        ])
+        # Should NOT fail with "--project is required"
+        assert "--project is required" not in result.output
+        # The actual project used would be "CLIProject" (override)
+        # We can't easily verify which project was used without mocking,
+        # but we verify no "required" error = CLI arg was accepted
+
+    def test_publish_spec_without_publish_section(self, tmp_path: Path) -> None:
+        """Publish --spec without publish section uses CLI args as before."""
+        twb = tmp_path / "test.twb"
+        twb.write_text("<workbook/>", encoding="utf-8")
+        spec_file = tmp_path / "spec.yaml"
+        spec_file.write_text(
+            "spec_version: '1.0'\n"
+            "workbook:\n"
+            "  name: test\n"
+            "  template:\n"
+            "    id: t1\n"
+            "    path: t.twb\n",
+            encoding="utf-8",
+        )
+        result = runner.invoke(app, [
+            "publish", "--input", str(twb),
+            "--server", "https://example.com",
+            "--project", "CLIProject",
+            "--spec", str(spec_file),
+        ])
+        # Should fail at TSC publish (no real server), not at arg validation
+        assert "--project is required" not in result.output
+
+    def test_publish_spec_without_server_fails(self, tmp_path: Path) -> None:
+        """Publish with --spec but no --server or TABLEAU_SERVER_URL fails with clear error."""
+        twb = tmp_path / "test.twb"
+        twb.write_text("<workbook/>", encoding="utf-8")
+        spec_file = tmp_path / "spec.yaml"
+        spec_file.write_text(
+            "spec_version: '1.0'\n"
+            "workbook:\n"
+            "  name: test\n"
+            "  template:\n"
+            "    id: t1\n"
+            "    path: t.twb\n"
+            "publish:\n"
+            "  project: SpecProject\n",
+            encoding="utf-8",
+        )
+        result = runner.invoke(app, [
+            "publish", "--input", str(twb),
+            "--spec", str(spec_file),
+        ], env={
+            "TABLEAU_SERVER_URL": "",
+            "TABLEAU_PAT_NAME": "fake-name",
+            "TABLEAU_PAT_SECRET": "fake-secret",
+        })
+        # Should fail with server URL error, NOT project error
+        assert "--server or TABLEAU_SERVER_URL" in result.output
+
+    def test_publish_falls_back_to_rest(self, tmp_path: Path) -> None:
+        """Publish attempts REST fallback when TSC publish fails."""
+        twb = tmp_path / "test.twb"
+        twb.write_text("<workbook/>", encoding="utf-8")
+        result = runner.invoke(app, [
+            "publish", "--input", str(twb),
+            "--server", "https://example.com",
+            "--project", "Test",
+        ], env={
+            "TABLEAU_PAT_NAME": "fake-name",
+            "TABLEAU_PAT_SECRET": "fake-secret",
+        })
+        # Both TSC and REST will fail (no real server/credentials)
+        # But output should show fallback was attempted
+        assert "Attempting REST API fallback" in result.output
+
+    def test_publish_spec_no_publish_no_project_fails(self, tmp_path: Path) -> None:
+        """Publish --spec (no publish section) without --project fails with project required."""
+        twb = tmp_path / "test.twb"
+        twb.write_text("<workbook/>", encoding="utf-8")
+        spec_file = tmp_path / "spec.yaml"
+        spec_file.write_text(
+            "spec_version: '1.0'\n"
+            "workbook:\n"
+            "  name: test\n"
+            "  template:\n"
+            "    id: t1\n"
+            "    path: t.twb\n",
+            encoding="utf-8",
+        )
+        result = runner.invoke(app, [
+            "publish", "--input", str(twb),
+            "--server", "https://example.com",
+            "--spec", str(spec_file),
+        ])
+        assert "--project is required" in result.output
+
+    def test_publish_help_shows_spec_option(self) -> None:
+        """Publish --help shows --spec option."""
+        result = runner.invoke(app, ["publish", "--help"])
+        assert "--spec" in result.output
