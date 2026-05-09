@@ -71,8 +71,8 @@ Plans:
 **Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 03-01: Packaging module (WorkbookPackager, PackageVerifier) and package CLI command (PKG-01, PKG-02)
-- [ ] 03-02: Publishing infrastructure (TSCPublisher, RESTFallback, PublishReceipt, Settings, PublishSpec) (PUB-01, PUB-02, PUB-03, PUB-04, PUB-05)
+- [x] 03-01: Packaging module (WorkbookPackager, PackageVerifier) and package CLI command (PKG-01, PKG-02)
+- [x] 03-02: Publishing infrastructure (TSCPublisher, RESTFallback, PublishReceipt, Settings, PublishSpec) (PUB-01, PUB-02, PUB-03, PUB-04, PUB-05)
 - [ ] 03-03: Publish CLI command with auto-package and integration tests (PUB-01, PUB-03, PUB-05)
 
 ### Phase 4: Agent Skills and MCP Integration
