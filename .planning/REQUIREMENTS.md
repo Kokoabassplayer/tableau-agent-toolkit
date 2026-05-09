@@ -107,7 +107,7 @@
 | SPEC-01 | Phase 1 | Pending |
 | SPEC-02 | Phase 1 | Pending |
 | SPEC-03 | Phase 1 | Pending |
-| SPEC-04 | Phase 1 | Pending |
+| SPEC-04 | Phase 6 | Pending |
 | SPEC-05 | Phase 1 | Pending |
 | GEN-01 | Phase 1 | Pending |
 | GEN-02 | Phase 1 | Pending |
@@ -122,17 +122,17 @@
 | PROJ-03 | Phase 1 | Pending |
 | PROJ-04 | Phase 1 | Pending |
 | PROJ-05 | Phase 1 | Pending |
-| VAL-01 | Phase 2 | Pending |
+| VAL-01 | Phase 5 | Pending |
 | VAL-02 | Phase 2 | Pending |
-| VAL-03 | Phase 2 | Pending |
-| VAL-04 | Phase 2 | Pending |
+| VAL-03 | Phase 6 | Pending |
+| VAL-04 | Phase 5 | Pending |
 | QA-01 | Phase 2 | Pending |
 | QA-02 | Phase 2 | Pending |
 | QA-03 | Phase 2 | Pending |
 | PKG-01 | Phase 3 | Pending |
-| PKG-02 | Phase 3 | Pending |
-| PUB-01 | Phase 3 | Pending |
-| PUB-02 | Phase 3 | Pending |
+| PKG-02 | Phase 7 | Pending |
+| PUB-01 | Phase 7 | Pending |
+| PUB-02 | Phase 7 | Pending |
 | PUB-03 | Phase 3 | Pending |
 | PUB-04 | Phase 3 | Pending |
 | PUB-05 | Phase 3 | Pending |
@@ -141,7 +141,7 @@
 | MCP-03 | Phase 4 | Pending |
 | SKILL-01 | Phase 4 | Pending |
 | SKILL-02 | Phase 4 | Pending |
-| SKILL-03 | Phase 4 | Pending |
+| SKILL-03 | Phase 5 | Pending |
 | SKILL-04 | Phase 4 | Pending |
 | SKILL-05 | Phase 4 | Pending |
 | SKILL-06 | Phase 4 | Pending |
@@ -154,4 +154,4 @@
 
 ---
 *Requirements defined: 2026-05-08*
-*Last updated: 2026-05-08 after roadmap creation*
+*Last updated: 2026-05-09 after gap closure phase assignment*

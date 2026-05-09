@@ -16,6 +16,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Validation and QA** - Validate workbooks semantically and run static QA checks so output is trustworthy before packaging
 - [ ] **Phase 3: Packaging and Publishing** - Package validated workbooks into .twbx and publish to Tableau Server/Cloud
 - [ ] **Phase 4: Agent Skills and MCP Integration** - Expose the proven CLI pipeline as five composable agent skills with dual plugin manifests
+- [ ] **Phase 5: XSD Path Fix and Validation Pipeline Repair** - Fix XSD path resolution and restore validate-xsd CLI flow
+- [ ] **Phase 6: Semantic Validation Enhancement** - Wire spec-to-semantic error mapping and add remediation steps
+- [ ] **Phase 7: Package and Publish Pipeline Completion** - Wire PackageVerifier, RESTFallbackPublisher, and spec-driven publish
 
 ## Phase Details
 
@@ -94,6 +97,36 @@ Plans:
 - [x] 04-03: End-to-end pipeline integration test exercising all 5 skills' CLI commands (SKILL-01, SKILL-02, SKILL-03, SKILL-04, SKILL-05, SKILL-06, SKILL-07, MCP-01, MCP-02, MCP-03)
 - [x] 04-04: Extended skill content quality tests (error handling, prerequisites, cross-references) (SKILL-01, SKILL-02, SKILL-03, SKILL-04, SKILL-05, SKILL-06, SKILL-07, MCP-01, MCP-02, MCP-03)
 
+### Phase 5: XSD Path Fix and Validation Pipeline Repair
+**Goal**: Fix the XSD path resolution bug that breaks the validate-xsd CLI command, restoring the validation pipeline and unblocking the tableau-twb-validator skill.
+**Depends on**: Phase 1, Phase 2, Phase 4
+**Requirements**: VAL-01, VAL-04, SKILL-03
+**Gap Closure**: Fixes XSD path mismatch (critical), restores validate-xsd flow, unblocks SKILL-03
+**Success Criteria** (what must be TRUE):
+  1. `tableau-agent-toolkit validate-xsd --input workbook.twb` resolves XSD correctly and produces validation results (no FileNotFoundError)
+  2. XSD path resolves to `third_party/tableau_document_schemas/schemas/2026_1/twb_2026.1.0.xsd`
+  3. `tableau-twb-validator` skill references a working validate-xsd CLI command
+
+### Phase 6: Semantic Validation Enhancement
+**Goal**: Wire the --spec option to SemanticValidator so semantic errors map back to spec line numbers, and add remediation steps to validation reports.
+**Depends on**: Phase 1, Phase 2, Phase 5
+**Requirements**: VAL-03, SPEC-04
+**Gap Closure**: Populates spec_ref on SemanticIssue, adds remediation steps to validate-semantic output
+**Success Criteria** (what must be TRUE):
+  1. `tableau-agent-toolkit validate-semantic --input workbook.twb --spec dashboard_spec.yaml` populates spec_ref on SemanticIssue objects, mapping errors back to spec line numbers
+  2. Validation report output includes remediation steps after errors and warnings
+  3. Error messages reference spec locations (e.g., "dashboard_spec.yaml line 42: sheet 'SalesMap' references undefined datasource")
+
+### Phase 7: Package and Publish Pipeline Completion
+**Goal**: Wire the three unwired Phase 3 components (PackageVerifier, RESTFallbackPublisher, PublishSpec) into the CLI and publish pipeline so packaging verifies integrity and publishing supports fallback and spec-driven configuration.
+**Depends on**: Phase 3, Phase 5
+**Requirements**: PKG-02, PUB-01, PUB-02
+**Gap Closure**: Wires PackageVerifier into package CLI, wires RESTFallbackPublisher as publish fallback, wires PublishSpec for spec-driven publish
+**Success Criteria** (what must be TRUE):
+  1. `tableau-agent-toolkit package --input workbook.twb` runs PackageVerifier after packaging and reports integrity results
+  2. Publish command falls back to RESTFallbackPublisher when TSC publish fails
+  3. Publish command reads server/project/site from spec.publish when not provided via CLI args
+
 ## Progress
 
 **Execution Order:**
@@ -105,3 +138,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 2. Validation and QA | 0/4 | Not started | - |
 | 3. Packaging and Publishing | 0/3 | Planned | - |
 | 4. Agent Skills and MCP Integration | 0/4 | Planned | - |
+| 5. XSD Path Fix and Validation Pipeline Repair | 0/? | Planned | - |
+| 6. Semantic Validation Enhancement | 0/? | Planned | - |
+| 7. Package and Publish Pipeline Completion | 0/? | Planned | - |
