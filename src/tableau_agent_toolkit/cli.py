@@ -13,6 +13,7 @@ The entry point is registered in pyproject.toml as:
     tableau-agent-toolkit = "tableau_agent_toolkit.cli:app"
 """
 
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -100,8 +101,11 @@ def validate_xsd(
     XSD for the specified Tableau version. Reports errors with line, column,
     and message.
     """
-    schemas_root = (
-        Path(__file__).parent.parent.parent / "third_party" / "tableau_document_schemas"
+    schemas_root = Path(
+        os.environ.get(
+            "TABLEAU_SCHEMAS_ROOT",
+            str(Path(__file__).parent.parent.parent / "third_party" / "tableau_document_schemas" / "schemas"),
+        )
     )
     validator = XsdValidator(schemas_root=schemas_root)
     result = validator.validate(twb_path, tableau_version=version)

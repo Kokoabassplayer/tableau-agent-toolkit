@@ -87,6 +87,39 @@ class TestValidateXsdCommand:
         assert "Validate" in result.output or "validate" in result.output.lower()
 
 
+class TestValidateXsdExecution:
+    """Test validate-xsd CLI command execution (actual validation, not just --help)."""
+
+    def test_validate_xsd_valid_twb_exits_zero(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """validate-xsd on valid_full.twb should exit 0 and print Valid."""
+        monkeypatch.setenv("TABLEAU_SCHEMAS_ROOT", str(FIXTURES_DIR / "schemas"))
+        valid_twb = FIXTURES_DIR / "valid_full.twb"
+        result = runner.invoke(app, ["validate-xsd", str(valid_twb)])
+        assert result.exit_code == 0, f"validate-xsd failed: {result.output}"
+        assert "Valid" in result.output or "passes" in result.output
+
+    def test_validate_xsd_invalid_twb_exits_nonzero(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """validate-xsd on malformed XML should exit non-zero with error details."""
+        monkeypatch.setenv("TABLEAU_SCHEMAS_ROOT", str(FIXTURES_DIR / "schemas"))
+        invalid_twb = tmp_path / "invalid.twb"
+        invalid_twb.write_text(
+            '<?xml version="1.0"?>\n<invalid_root />', encoding="utf-8"
+        )
+        result = runner.invoke(app, ["validate-xsd", str(invalid_twb)])
+        assert result.exit_code != 0
+        assert "Invalid" in result.output or "Line" in result.output
+
+    def test_validate_xsd_with_version_option(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """validate-xsd --version 2026.1 should work the same as default."""
+        monkeypatch.setenv("TABLEAU_SCHEMAS_ROOT", str(FIXTURES_DIR / "schemas"))
+        valid_twb = FIXTURES_DIR / "valid_full.twb"
+        result = runner.invoke(
+            app, ["validate-xsd", str(valid_twb), "--version", "2026.1"]
+        )
+        assert result.exit_code == 0, f"validate-xsd --version failed: {result.output}"
+        assert "Valid" in result.output or "passes" in result.output
+
+
 class TestValidateSemanticCommand:
     """Test the validate-semantic command --help and execution."""
 
