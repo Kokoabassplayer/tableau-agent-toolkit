@@ -99,6 +99,29 @@ class WorksheetSpec(BaseModel):
     )
 
 
+class PublishModeEnum(str, Enum):
+    """Publish mode for workbook deployment."""
+
+    CreateNew = "CreateNew"
+    Overwrite = "Overwrite"
+
+
+class PublishSpec(BaseModel):
+    """Publish configuration within a dashboard spec."""
+
+    model_config = {"extra": "forbid"}
+
+    project: str = Field(..., min_length=1, description="Target project name on server")
+    site_id: str = Field(default="", description="Target site contentUrl (empty for default)")
+    mode: PublishModeEnum = Field(
+        default=PublishModeEnum.CreateNew, description="Publish mode: CreateNew or Overwrite"
+    )
+    as_job: bool = Field(default=False, description="Use async publishing")
+    skip_connection_check: bool = Field(
+        default=False, description="Skip connection check at upload"
+    )
+
+
 class DashboardSpec(BaseModel):
     """Top-level dashboard specification model.
 
@@ -134,10 +157,7 @@ class DashboardSpec(BaseModel):
         default_factory=list,
         description="Dashboard layout definitions",
     )
-    publish: dict | None = Field(
-        default=None,
-        description="Publish configuration (server, project, etc.)",
-    )
+    publish: PublishSpec | None = Field(default=None, description="Publish configuration")
     qa: dict | None = Field(
         default=None,
         description="QA configuration (static checks, smoke tests)",
