@@ -73,7 +73,7 @@ Plans:
 Plans:
 - [x] 03-01: Packaging module (WorkbookPackager, PackageVerifier) and package CLI command (PKG-01, PKG-02)
 - [x] 03-02: Publishing infrastructure (TSCPublisher, RESTFallback, PublishReceipt, Settings, PublishSpec) (PUB-01, PUB-02, PUB-03, PUB-04, PUB-05)
-- [ ] 03-03: Publish CLI command with auto-package and integration tests (PUB-01, PUB-03, PUB-05)
+- [x] 03-03: Publish CLI command with auto-package and integration tests (PUB-01, PUB-03, PUB-05)
 
 ### Phase 4: Agent Skills and MCP Integration
 **Goal**: Agent users (Claude Code and Codex) can invoke five composable skills that wrap the proven CLI pipeline, with dual plugin manifests and optional MCP integration for post-publish QA workflows.
