@@ -50,6 +50,41 @@ class TestSemanticIssue:
         assert issue.xml_element is None
         assert issue.spec_ref is None
 
+    def test_has_spec_file_field(self) -> None:
+        field_names = {f.name for f in fields(SemanticIssue)}
+        assert "spec_file" in field_names
+
+    def test_has_spec_line_field(self) -> None:
+        field_names = {f.name for f in fields(SemanticIssue)}
+        assert "spec_line" in field_names
+
+    def test_has_remediation_field(self) -> None:
+        field_names = {f.name for f in fields(SemanticIssue)}
+        assert "remediation" in field_names
+
+    def test_new_fields_default_to_none(self) -> None:
+        issue = SemanticIssue(
+            severity=Severity.ERROR,
+            category="reference",
+            message="Test",
+        )
+        assert issue.spec_file is None
+        assert issue.spec_line is None
+        assert issue.remediation is None
+
+    def test_create_with_spec_fields(self) -> None:
+        issue = SemanticIssue(
+            severity=Severity.ERROR,
+            category="reference",
+            message="Broken",
+            spec_file="spec.yaml",
+            spec_line=42,
+            remediation="Fix it",
+        )
+        assert issue.spec_file == "spec.yaml"
+        assert issue.spec_line == 42
+        assert issue.remediation == "Fix it"
+
     def test_create_with_xml_element(self) -> None:
         elem = etree.Element("zone", name="BadSheet")
         issue = SemanticIssue(

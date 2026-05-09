@@ -1,0 +1,18 @@
+spec_version: "1.0"
+workbook:
+  name: "Broken References Test"
+  target_tableau_version: "2026.1"
+  template:
+    id: "test"
+    path: ""
+datasources:
+  - name: "Data"
+worksheets:
+  - name: "Sheet1"
+    datasource: "Data"
+dashboards:
+  - name: "Dash1"
+    layout: "tiled"
+    sheets:
+      - "Sheet1"
+      - "NonExistentSheet"

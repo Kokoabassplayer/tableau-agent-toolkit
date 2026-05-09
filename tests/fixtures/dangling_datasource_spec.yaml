@@ -1,0 +1,13 @@
+spec_version: "1.0"
+workbook:
+  name: "Dangling Datasource Test"
+  target_tableau_version: "2026.1"
+  template:
+    id: "test"
+    path: ""
+datasources:
+  - name: "Data"
+worksheets:
+  - name: "Sheet1"
+    datasource: "MissingDS"
+dashboards: []
