@@ -125,8 +125,8 @@ Plans:
 **Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 06-01: Add spec_file/spec_line/remediation fields to SemanticIssue, rewrite _build_spec_index with yaml.compose() line tracking, add REMEDIATION_MAP, add unit tests (VAL-03, SPEC-04)
-- [ ] 06-02: Update validate-semantic CLI output format with line numbers and remediation, add integration tests (VAL-03, SPEC-04)
+- [x] 06-01: Add spec_file/spec_line/remediation fields to SemanticIssue, rewrite _build_spec_index with yaml.compose() line tracking, add REMEDIATION_MAP, add unit tests (VAL-03, SPEC-04)
+- [x] 06-02: Update validate-semantic CLI output format with line numbers and remediation, add integration tests (VAL-03, SPEC-04)
 
 ### Phase 7: Package and Publish Pipeline Completion
 **Goal**: Wire the three unwired Phase 3 components (PackageVerifier, RESTFallbackPublisher, PublishSpec) into the CLI and publish pipeline so packaging verifies integrity and publishing supports fallback and spec-driven configuration.
