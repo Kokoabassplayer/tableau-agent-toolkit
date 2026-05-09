@@ -107,6 +107,11 @@ Plans:
   2. XSD path resolves to `third_party/tableau_document_schemas/schemas/2026_1/twb_2026.1.0.xsd`
   3. `tableau-twb-validator` skill references a working validate-xsd CLI command
 
+**Plans**: 1 plan in 1 wave
+
+Plans:
+- [ ] 05-01: Fix XSD path constant, add CLI execution tests, remove pipeline workaround (VAL-01, VAL-04, SKILL-03)
+
 ### Phase 6: Semantic Validation Enhancement
 **Goal**: Wire the --spec option to SemanticValidator so semantic errors map back to spec line numbers, and add remediation steps to validation reports.
 **Depends on**: Phase 1, Phase 2, Phase 5
@@ -138,6 +143,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 2. Validation and QA | 0/4 | Not started | - |
 | 3. Packaging and Publishing | 0/3 | Planned | - |
 | 4. Agent Skills and MCP Integration | 0/4 | Planned | - |
-| 5. XSD Path Fix and Validation Pipeline Repair | 0/? | Planned | - |
+| 5. XSD Path Fix and Validation Pipeline Repair | 0/1 | Planned | - |
 | 6. Semantic Validation Enhancement | 0/? | Planned | - |
 | 7. Package and Publish Pipeline Completion | 0/? | Planned | - |
