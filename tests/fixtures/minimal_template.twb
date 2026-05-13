@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
-<workbook source-build='0.0.0 (0000.0.0.0.0)' source-platform='win' original-version='26.1' version='26.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
+<workbook source-build='0.0.0 (0000.0.0.0.0)' source-platform='win' original-version='18.1' version='18.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
   <document-format-change-manifest>
     <ManifestByVersion />
   </document-format-change-manifest>
   <datasources>
-    <datasource caption='Data' inline='true' name='Parameters' version='26.1'>
+    <datasource caption='Data' inline='true' name='Parameters' version='18.1'>
       <connection class='parameters' />
       <aliases enabled='yes' />
       <column datatype='string' name='Parameter 1' role='dimension' type='nominal' value='abc' />

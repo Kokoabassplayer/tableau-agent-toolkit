@@ -247,16 +247,14 @@ class TestDirectoryCreation:
 
 
 class TestVersionPropagation:
-    """Tests for version attribute propagation to internal elements."""
+    """Tests for version attribute application to internal elements."""
 
-    def test_datasource_version_updated_when_target_differs(
+    def test_all_versions_are_18_1_regardless_of_target(
         self, tmp_path: Path
     ) -> None:
-        """Version attributes on internal elements are updated when target
-        version differs from template version."""
+        """All version attributes use canonical '18.1' format for any target."""
         from tableau_agent_toolkit.twb.generator import WorkbookGenerator
 
-        # Template has version='26.1', target is 2024.2 -> twb version '24.2'
         spec = _make_spec(target_tableau_version="2024.2")
         registry = _make_registry()
         output_path = tmp_path / "output.twb"
@@ -267,13 +265,13 @@ class TestVersionPropagation:
         tree = etree.parse(str(output_path))
         root = tree.getroot()
 
-        assert root.attrib["version"] == "24.2"
-        assert root.attrib["original-version"] == "24.2"
+        assert root.attrib["version"] == "18.1"
+        assert root.attrib["original-version"] == "18.1"
 
         for ds in root.xpath(".//datasource"):
-            assert ds.attrib.get("version") == "24.2", (
+            assert ds.attrib.get("version") == "18.1", (
                 f"datasource '{ds.attrib.get('name')}' has version "
-                f"'{ds.attrib.get('version')}', expected '24.2'"
+                f"'{ds.attrib.get('version')}', expected '18.1'"
             )
 
     def test_version_unchanged_when_target_matches_template(
@@ -293,16 +291,17 @@ class TestVersionPropagation:
         tree = etree.parse(str(output_path))
         root = tree.getroot()
 
-        assert root.attrib["version"] == "26.1"
+        assert root.attrib["version"] == "18.1"
         for ds in root.xpath(".//datasource"):
-            assert ds.attrib.get("version") == "26.1"
+            assert ds.attrib.get("version") == "18.1"
 
-    def test_downgrade_from_26_1_to_2024_3(self, tmp_path: Path) -> None:
-        """Downgrading from template 26.1 to target 2024.3 propagates
-        version '24.3' to all internal elements."""
+    def test_source_build_reflects_target_version(
+        self, tmp_path: Path
+    ) -> None:
+        """source-build attribute reflects the target Tableau product version."""
         from tableau_agent_toolkit.twb.generator import WorkbookGenerator
 
-        spec = _make_spec(target_tableau_version="2024.3")
+        spec = _make_spec(target_tableau_version="2024.2")
         registry = _make_registry()
         output_path = tmp_path / "output.twb"
 
@@ -312,14 +311,14 @@ class TestVersionPropagation:
         tree = etree.parse(str(output_path))
         root = tree.getroot()
 
-        assert root.attrib["version"] == "24.3"
-        assert root.attrib["original-version"] == "24.3"
-        for ds in root.xpath(".//datasource"):
-            assert ds.attrib.get("version") == "24.3"
+        source_build = root.attrib["source-build"]
+        assert "2024.2" in source_build
+        assert "20242" in source_build
 
-    def test_all_version_attributes_replaced(self, tmp_path: Path) -> None:
-        """Every version attribute in the entire tree is replaced, not just
-        on datasources."""
+    def test_all_version_attributes_use_canonical_format(
+        self, tmp_path: Path
+    ) -> None:
+        """Every version attribute in the entire tree uses canonical '18.1'."""
         from tableau_agent_toolkit.twb.generator import WorkbookGenerator
 
         spec = _make_spec(target_tableau_version="2024.2")
@@ -335,6 +334,6 @@ class TestVersionPropagation:
         for element in root.iter():
             ver = element.get("version")
             if ver is not None:
-                assert ver == "24.2", (
-                    f"Element <{element.tag}> has version='{ver}', expected '24.2'"
+                assert ver == "18.1", (
+                    f"Element <{element.tag}> has version='{ver}', expected '18.1'"
                 )

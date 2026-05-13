@@ -63,8 +63,12 @@ class TableauVersion:
 
     @property
     def twb_version_string(self) -> str:
-        """Return the TWB version string (e.g., '26.1' for TableauVersion(26, 1))."""
-        return f"{self.major}.{self.minor}"
+        """Return the TWB version string.
+
+        All modern Tableau versions (2018.3+) use '18.1' as the internal TWB
+        format version.  This is separate from the product version (e.g. 2024.2).
+        """
+        return "18.1"
 
     @property
     def xsd_version_string(self) -> str:
@@ -119,7 +123,13 @@ def apply_manifest_by_version(tree: etree._ElementTree, tableau_version: str) ->
     # Set version attributes on root
     root.attrib["version"] = target_twb
     root.attrib["original-version"] = target_twb
-    root.attrib["source-build"] = "0.0.0 (0000.0.0.0)"
+    # source-build must match Tableau's format: "<YYYYR>.<YY>.<MMDD>.<HHMM>"
+    # e.g. Tableau 2024.2 produces "20242.24.0807.0327"
+    product_build = f"20{version.major:02d}{version.minor}"
+    year_short = f"{2000 + version.major}"[-2:]
+    root.attrib["source-build"] = (
+        f"{tableau_version}.0 ({product_build}.{year_short}.0000.0000)"
+    )
     root.attrib["source-platform"] = "win"
 
     # Propagate version to all internal elements when template differs

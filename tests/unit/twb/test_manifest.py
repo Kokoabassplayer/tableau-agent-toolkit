@@ -37,11 +37,11 @@ class TestTableauVersionStrings:
     """Tests for TableauVersion string properties."""
 
     def test_twb_version_string(self):
-        """TableauVersion(26, 1).twb_version_string returns '26.1'."""
+        """TableauVersion(26, 1).twb_version_string returns '18.1' (canonical format)."""
         from tableau_agent_toolkit.twb.manifest import TableauVersion
 
         version = TableauVersion(26, 1)
-        assert version.twb_version_string == "26.1"
+        assert version.twb_version_string == "18.1"
 
     def test_xsd_version_string(self):
         """TableauVersion(26, 1).xsd_version_string returns '2026.1.0'."""
@@ -77,24 +77,24 @@ class TestApplyManifestByVersion:
         return etree.fromstring(xml.encode(), parser=etree.XMLParser())
 
     def test_sets_version_attribute(self):
-        """apply_manifest_by_version sets root version attribute to '26.1' when given '2026.1'."""
+        """apply_manifest_by_version sets root version to '18.1' (canonical format)."""
         from tableau_agent_toolkit.twb.manifest import apply_manifest_by_version
 
         tree = self._make_workbook_tree()
         root = tree if isinstance(tree, etree._Element) else tree.getroot()
         tree_obj = etree.ElementTree(root)
         apply_manifest_by_version(tree_obj, "2026.1")
-        assert root.attrib["version"] == "26.1"
+        assert root.attrib["version"] == "18.1"
 
     def test_sets_original_version_attribute(self):
-        """apply_manifest_by_version sets root original-version attribute to '26.1'."""
+        """apply_manifest_by_version sets root original-version to '18.1'."""
         from tableau_agent_toolkit.twb.manifest import apply_manifest_by_version
 
         tree = self._make_workbook_tree()
         root = tree if isinstance(tree, etree._Element) else tree.getroot()
         tree_obj = etree.ElementTree(root)
         apply_manifest_by_version(tree_obj, "2026.1")
-        assert root.attrib["original-version"] == "26.1"
+        assert root.attrib["original-version"] == "18.1"
 
     def test_creates_manifest_with_feature_flags(self):
         """apply_manifest_by_version creates document-format-change-manifest with feature flag entries."""
