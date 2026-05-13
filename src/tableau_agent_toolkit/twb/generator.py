@@ -207,6 +207,23 @@ class WorkbookGenerator:
             ws_el = etree.SubElement(worksheets_el, "worksheet")
             ws_el.attrib["name"] = ws.name
 
+            # Minimal table structure required by Tableau Desktop to load
+            # the workbook without assertion errors in DsParserHelper.
+            table_el = etree.SubElement(ws_el, "table")
+            view_el = etree.SubElement(table_el, "view")
+            view_ds_el = etree.SubElement(view_el, "datasources")
+            view_ds_ref = etree.SubElement(view_ds_el, "datasource")
+            view_ds_ref.attrib["name"] = ws.datasource
+            etree.SubElement(view_el, "aggregation", attrib={"value": "true"})
+            etree.SubElement(table_el, "style")
+            panes_el = etree.SubElement(table_el, "panes")
+            pane_el = etree.SubElement(panes_el, "pane")
+            pane_view = etree.SubElement(pane_el, "view")
+            etree.SubElement(pane_view, "breakdown", attrib={"value": "auto"})
+            etree.SubElement(pane_el, "mark", attrib={"class": "Automatic"})
+            etree.SubElement(table_el, "rows")
+            etree.SubElement(table_el, "cols")
+
     def _patch_dashboards(self, tree: etree._ElementTree, spec: DashboardSpec) -> None:
         """Add dashboard elements from the spec to the workbook XML.
 
