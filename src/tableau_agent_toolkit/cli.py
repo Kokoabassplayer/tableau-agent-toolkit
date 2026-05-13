@@ -68,6 +68,11 @@ def generate(
         "--template",
         help="Override template path (bypasses registry lookup)",
     ),
+    version: Optional[str] = typer.Option(
+        None,
+        "--version",
+        help="Override target Tableau version (e.g. '2024.2')",
+    ),
 ) -> None:
     """Generate a Tableau workbook from a spec and template.
 
@@ -75,6 +80,8 @@ def generate(
     and writes the output .twb file.
     """
     spec = load_spec(spec_path)
+    if version is not None:
+        spec.workbook.target_tableau_version = version
     registry = TemplateRegistry()
     generator = WorkbookGenerator(template_registry=registry)
     result = generator.generate(spec, output, template_override=template)

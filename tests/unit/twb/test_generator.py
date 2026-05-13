@@ -31,6 +31,7 @@ def _make_spec(
     calculations: list | None = None,
     worksheets: list | None = None,
     dashboards: list | None = None,
+    target_tableau_version: str = "2026.1",
 ) -> DashboardSpec:
     """Helper to create a DashboardSpec for testing."""
     if template_path is None:
@@ -39,7 +40,7 @@ def _make_spec(
         spec_version="1.0",
         workbook=WorkbookSpec(
             name=name,
-            target_tableau_version="2026.1",
+            target_tableau_version=target_tableau_version,
             packaging=PackagingEnum.twb,
             template=TemplateSpec(
                 id="test-template",
@@ -243,3 +244,97 @@ class TestDirectoryCreation:
 
         assert output_path.exists()
         assert result.output_path == output_path
+
+
+class TestVersionPropagation:
+    """Tests for version attribute propagation to internal elements."""
+
+    def test_datasource_version_updated_when_target_differs(
+        self, tmp_path: Path
+    ) -> None:
+        """Version attributes on internal elements are updated when target
+        version differs from template version."""
+        from tableau_agent_toolkit.twb.generator import WorkbookGenerator
+
+        # Template has version='26.1', target is 2024.2 -> twb version '24.2'
+        spec = _make_spec(target_tableau_version="2024.2")
+        registry = _make_registry()
+        output_path = tmp_path / "output.twb"
+
+        generator = WorkbookGenerator(template_registry=registry)
+        generator.generate(spec, output_path)
+
+        tree = etree.parse(str(output_path))
+        root = tree.getroot()
+
+        assert root.attrib["version"] == "24.2"
+        assert root.attrib["original-version"] == "24.2"
+
+        for ds in root.xpath(".//datasource"):
+            assert ds.attrib.get("version") == "24.2", (
+                f"datasource '{ds.attrib.get('name')}' has version "
+                f"'{ds.attrib.get('version')}', expected '24.2'"
+            )
+
+    def test_version_unchanged_when_target_matches_template(
+        self, tmp_path: Path
+    ) -> None:
+        """When target version matches template version, all elements keep
+        the same version."""
+        from tableau_agent_toolkit.twb.generator import WorkbookGenerator
+
+        spec = _make_spec(target_tableau_version="2026.1")
+        registry = _make_registry()
+        output_path = tmp_path / "output.twb"
+
+        generator = WorkbookGenerator(template_registry=registry)
+        generator.generate(spec, output_path)
+
+        tree = etree.parse(str(output_path))
+        root = tree.getroot()
+
+        assert root.attrib["version"] == "26.1"
+        for ds in root.xpath(".//datasource"):
+            assert ds.attrib.get("version") == "26.1"
+
+    def test_downgrade_from_26_1_to_2024_3(self, tmp_path: Path) -> None:
+        """Downgrading from template 26.1 to target 2024.3 propagates
+        version '24.3' to all internal elements."""
+        from tableau_agent_toolkit.twb.generator import WorkbookGenerator
+
+        spec = _make_spec(target_tableau_version="2024.3")
+        registry = _make_registry()
+        output_path = tmp_path / "output.twb"
+
+        generator = WorkbookGenerator(template_registry=registry)
+        generator.generate(spec, output_path)
+
+        tree = etree.parse(str(output_path))
+        root = tree.getroot()
+
+        assert root.attrib["version"] == "24.3"
+        assert root.attrib["original-version"] == "24.3"
+        for ds in root.xpath(".//datasource"):
+            assert ds.attrib.get("version") == "24.3"
+
+    def test_all_version_attributes_replaced(self, tmp_path: Path) -> None:
+        """Every version attribute in the entire tree is replaced, not just
+        on datasources."""
+        from tableau_agent_toolkit.twb.generator import WorkbookGenerator
+
+        spec = _make_spec(target_tableau_version="2024.2")
+        registry = _make_registry()
+        output_path = tmp_path / "output.twb"
+
+        generator = WorkbookGenerator(template_registry=registry)
+        generator.generate(spec, output_path)
+
+        tree = etree.parse(str(output_path))
+        root = tree.getroot()
+
+        for element in root.iter():
+            ver = element.get("version")
+            if ver is not None:
+                assert ver == "24.2", (
+                    f"Element <{element.tag}> has version='{ver}', expected '24.2'"
+                )

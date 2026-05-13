@@ -96,8 +96,8 @@ class TestApplyManifestByVersion:
         apply_manifest_by_version(tree_obj, "2026.1")
         assert root.attrib["original-version"] == "26.1"
 
-    def test_creates_manifest_by_version_element(self):
-        """apply_manifest_by_version creates document-format-change-manifest with ManifestByVersion child."""
+    def test_creates_manifest_with_feature_flags(self):
+        """apply_manifest_by_version creates document-format-change-manifest with feature flag entries."""
         from tableau_agent_toolkit.twb.manifest import apply_manifest_by_version
 
         tree = self._make_workbook_tree()
@@ -107,8 +107,9 @@ class TestApplyManifestByVersion:
 
         manifest = root.find(".//document-format-change-manifest")
         assert manifest is not None
-        manifest_by_version = manifest.find("ManifestByVersion")
-        assert manifest_by_version is not None
+        children = list(manifest)
+        assert len(children) > 0
+        assert any("_.fcp." in c.tag for c in children)
 
     def test_preserves_namespace_declarations(self):
         """apply_manifest_by_version preserves existing namespace declarations (xmlns:user)."""

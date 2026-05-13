@@ -5,6 +5,7 @@
   </document-format-change-manifest>
   <datasources>
     <datasource caption='Data' inline='true' name='Parameters' version='26.1'>
+      <connection class='parameters' />
       <aliases enabled='yes' />
       <column datatype='string' name='Parameter 1' role='dimension' type='nominal' value='abc' />
     </datasource>

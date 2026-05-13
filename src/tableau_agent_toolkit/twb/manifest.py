@@ -72,12 +72,38 @@ class TableauVersion:
         return f"20{self.major:02d}.{self.minor}.0"
 
 
+def _propagate_version_to_descendants(
+    tree: etree._ElementTree,
+    template_twb: str,
+    target_twb: str,
+) -> None:
+    """Replace version attributes on all descendant elements.
+
+    Finds every element in the tree that has a ``version`` attribute equal to
+    *template_twb* and replaces it with *target_twb*.  The root element is
+    skipped because ``apply_manifest_by_version`` already handles it.
+
+    Args:
+        tree: The workbook XML tree to modify (modified in-place).
+        template_twb: The TWB version string from the template (e.g. '26.1').
+        target_twb: The TWB version string for the target (e.g. '24.2').
+    """
+    root = tree.getroot()
+    for element in root.iter():
+        if element is root:
+            continue
+        if element.get("version") == template_twb:
+            element.set("version", target_twb)
+
+
 def apply_manifest_by_version(tree: etree._ElementTree, tableau_version: str) -> None:
     """Apply version attributes and ManifestByVersion element to a workbook XML tree.
 
     Sets version, original-version, source-build, and source-platform attributes on
     the root element. Creates or updates the document-format-change-manifest element
-    with a ManifestByVersion child.
+    with a ManifestByVersion child.  When the target version differs from the
+    template version, propagates the target version to all descendant elements
+    (e.g. ``<datasource version="...">``).
 
     Args:
         tree: The workbook XML tree to modify (modified in-place).
@@ -85,18 +111,38 @@ def apply_manifest_by_version(tree: etree._ElementTree, tableau_version: str) ->
     """
     version = TableauVersion.from_display_version(tableau_version)
     root = tree.getroot()
+    target_twb = version.twb_version_string
+
+    # Capture template version before overwriting root attributes
+    template_twb = root.get("version")
 
     # Set version attributes on root
-    root.attrib["version"] = version.twb_version_string
-    root.attrib["original-version"] = version.twb_version_string
-    root.attrib["source-build"] = "0.0.0 (0000.0.0.0.0)"
+    root.attrib["version"] = target_twb
+    root.attrib["original-version"] = target_twb
+    root.attrib["source-build"] = "0.0.0 (0000.0.0.0)"
     root.attrib["source-platform"] = "win"
 
-    # Find or create document-format-change-manifest element
+    # Propagate version to all internal elements when template differs
+    if template_twb is not None and template_twb != target_twb:
+        _propagate_version_to_descendants(tree, template_twb, target_twb)
+
+    # Find or create document-format-change-manifest element.
+    # Must use feature-flag entries (not <ManifestByVersion/>) because
+    # Tableau Desktop rejects empty ManifestByVersion as "incompatible
+    # manifest entries" (error 95B9F4BA).
     manifest = root.find(".//document-format-change-manifest")
     if manifest is None:
         manifest = etree.SubElement(root, "document-format-change-manifest")
 
-    # Clear existing children and add ManifestByVersion
     manifest.clear()
-    manifest.append(etree.Element("ManifestByVersion"))
+    for tag in [
+        "_.fcp.AnimationOnByDefault.true...AnimationOnByDefault",
+        "_.fcp.MarkAnimation.true...MarkAnimation",
+        "_.fcp.ObjectModelEncapsulateLegacy.true...ObjectModelEncapsulateLegacy",
+        "_.fcp.ObjectModelTableType.true...ObjectModelTableType",
+        "_.fcp.RelationshipCalculations.true...RelationshipCalculations",
+        "_.fcp.SchemaViewerObjectModel.true...SchemaViewerObjectModel",
+        "SheetIdentifierTracking",
+        "WindowsPersistSimpleIdentifiers",
+    ]:
+        manifest.append(etree.Element(tag))
